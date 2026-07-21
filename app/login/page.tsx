@@ -30,11 +30,17 @@ export default function LoginPage() {
     try {
       const validated = loginSchema.parse(formData)
       
-      await signIn("credentials", {
+      const result = await signIn("credentials", {
         email: validated.email,
         password: validated.password,
         redirect: false,
       })
+
+      if (result?.error) {
+        setErrors({ email: "Invalid email or password" })
+        setIsLoading(false)
+        return
+      }
 
       window.location.href = "/dashboard"
     } catch (error) {
