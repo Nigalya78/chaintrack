@@ -1,0 +1,253 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== USER & BUSINESS ====================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  business Business?
+}
+
+model Business {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  name        String
+  ownerName   String
+  phone       String
+  logo        String?
+  address     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user                User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  openingBalance      OpeningBalance?
+  labourers           Labourer[]
+  finishingVendors    FinishingVendor[]
+  shops               Shop[]
+  suppliers           Supplier[]
+  inventory           Inventory[]
+  purchases           Purchase[]
+  labourTransactions   LabourTransaction[]
+  finishingTransactions FinishingTransaction[]
+  sales               Sale[]
+  adjustments         Adjustment[]
+  labourOpeningBalances LabourOpeningBalance[]
+  finishingOpeningBalances FinishingOpeningBalance[]
+}
+
+// ==================== OPENING BALANCES ====================
+
+model OpeningBalance {
+  id                  String   @id @default(cuid())
+  businessId          String   @unique
+  kanniOtKg           Decimal  @default(0) @db.Decimal(10, 3)
+  kanniMediumKg       Decimal  @default(0) @db.Decimal(10, 3)
+  otChains            Int      @default(0)
+  mediumChains        Int      @default(0)
+  finishingOtChains    Int      @default(0)
+  finishingMediumChains Int      @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+}
+
+model LabourOpeningBalance {
+  id              String   @id @default(cuid())
+  businessId      String
+  labourerId      String
+  otChains        Int      @default(0)
+  mediumChains    Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  labourer Labourer @relation(fields: [labourerId], references: [id], onDelete: Cascade)
+
+  @@unique([businessId, labourerId])
+}
+
+model FinishingOpeningBalance {
+  id              String   @id @default(cuid())
+  businessId      String
+  vendorId        String
+  otChains        Int      @default(0)
+  mediumChains    Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  business      Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  vendor        FinishingVendor  @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@unique([businessId, vendorId])
+}
+
+// ==================== ENTITIES ====================
+
+model Supplier {
+  id        String   @id @default(cuid())
+  businessId String
+  name      String
+  phone     String
+  area      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  business    Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  purchases   Purchase[]
+}
+
+model Labourer {
+  id        String   @id @default(cuid())
+  businessId String
+  name      String
+  phone     String?
+  rateOt    Decimal? @db.Decimal(10, 2)
+  rateMedium Decimal? @db.Decimal(10, 2)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  business             Business             @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  labourTransactions   LabourTransaction[]
+  openingBalances      LabourOpeningBalance[]
+}
+
+model FinishingVendor {
+  id        String   @id @default(cuid())
+  businessId String
+  name      String
+  phone     String?
+  area      String?
+  rateOt    Decimal? @db.Decimal(10, 2)
+  rateMedium Decimal? @db.Decimal(10, 2)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  business              Business              @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  finishingTransactions FinishingTransaction[]
+  openingBalances       FinishingOpeningBalance[]
+}
+
+model Shop {
+  id        String   @id @default(cuid())
+  businessId String
+  name      String
+  phone     String?
+  area      String?
+  rateOt    Decimal? @db.Decimal(10, 2)
+  rateMedium Decimal? @db.Decimal(10, 2)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  sales    Sale[]
+}
+
+// ==================== INVENTORY ====================
+
+model Inventory {
+  id          String   @id @default(cuid())
+  businessId  String
+  type        String   // "KANNI_OT", "KANNI_MEDIUM", "CHAIN_OT", "CHAIN_MEDIUM"
+  quantity    Decimal  @db.Decimal(15, 3)
+  unit        String   // "kg" or "pieces"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@unique([businessId, type])
+}
+
+// ==================== TRANSACTIONS ====================
+
+model Purchase {
+  id           String   @id @default(cuid())
+  businessId   String
+  supplierId   String
+  chainType    String   // "OT" or "MEDIUM"
+  kilograms    Decimal  @db.Decimal(10, 3)
+  packetCount  Int
+  pricePerKg   Decimal  @db.Decimal(12, 2)
+  totalCost    Decimal  @db.Decimal(14, 2)
+  purchaseDate DateTime
+  createdAt    DateTime @default(now())
+
+  business  Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  supplier  Supplier  @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+}
+
+model LabourTransaction {
+  id                String   @id @default(cuid())
+  businessId        String
+  labourerId        String
+  chainType         String   // "OT" or "MEDIUM"
+  chainsGiven       Int
+  chainsReceived    Int
+  ratePerPiece      Decimal? @db.Decimal(10, 2)
+  amountGiven       Decimal? @db.Decimal(14, 2)
+  transactionDate   DateTime
+  notes             String?
+  createdAt         DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  labourer Labourer @relation(fields: [labourerId], references: [id], onDelete: Cascade)
+}
+
+model FinishingTransaction {
+  id                    String   @id @default(cuid())
+  businessId            String
+  vendorId              String
+  chainType             String   // "OT" or "MEDIUM"
+  chainsGiven           Int
+  finishedChainsReceived Int
+  ratePerPiece          Decimal? @db.Decimal(10, 2)
+  transactionDate       DateTime
+  notes                 String?
+  createdAt             DateTime @default(now())
+
+  business Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  vendor   FinishingVendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+}
+
+model Sale {
+  id           String   @id @default(cuid())
+  businessId   String
+  shopId       String
+  chainType    String   // "OT" or "MEDIUM"
+  chainCount   Int
+  pricePerChain Decimal @db.Decimal(12, 2)
+  totalAmount  Decimal  @db.Decimal(14, 2)
+  saleDate     DateTime
+  createdAt    DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  shop    Shop    @relation(fields: [shopId], references: [id], onDelete: Cascade)
+}
+
+model Adjustment {
+  id          String   @id @default(cuid())
+  businessId  String
+  type        String   // "KANNI_OT", "KANNI_MEDIUM", "CHAIN_OT", "CHAIN_MEDIUM"
+  quantity    Decimal  @db.Decimal(15, 3)
+  reason      String
+  adjustmentDate DateTime
+  createdAt   DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+}

@@ -1,0 +1,26 @@
+node_modules
+# Keep environment variables out of version control
+.env
+.env.local
+
+# Build outputs
+.next
+out
+dist
+
+# Graphify output
+graphify-out
+
+# Prisma generated files
+/lib/generated/prisma
+
+# TypeScript
+*.tsbuildinfo
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
