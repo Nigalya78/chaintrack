@@ -12,7 +12,8 @@ import {
   DollarSign,
   Menu,
   X,
-  LogOut
+  LogOut,
+  User
 } from "lucide-react";
 import { useState } from "react";
 import { signOut } from "next-auth/react";
@@ -28,6 +29,7 @@ const navigation = [
   { name: "Vendors", href: "/vendors", icon: Users },
   { name: "Shops", href: "/shops", icon: DollarSign },
   { name: "Adjustments", href: "/adjustments", icon: LayoutDashboard },
+  { name: "Profile", href: "/profile", icon: User },
 ];
 
 export function Sidebar() {
