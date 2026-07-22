@@ -25,6 +25,7 @@ export const { handlers, auth } = NextAuth({
 
         console.log("User found:", !!user)
         if (!user) {
+          console.log("User not found")
           return null
         }
 
@@ -43,6 +44,7 @@ export const { handlers, auth } = NextAuth({
 
         console.log("Password valid:", isPasswordValid)
         if (!isPasswordValid) {
+          console.log("Password invalid")
           return null
         }
 
@@ -74,7 +76,10 @@ export const { handlers, auth } = NextAuth({
         session.user.id = token.id as string
       }
       return session
-    }
+    },
+    async signIn({ user, account, profile, email, credentials }) {
+      return true
+    },
   },
   secret: process.env.NEXTAUTH_SECRET,
   trustHost: true,

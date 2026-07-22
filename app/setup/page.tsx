@@ -119,7 +119,7 @@ export default function SetupPage() {
       const response = await fetch("/api/setup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, userId, businessId }),
+        body: JSON.stringify({ ...data, userId, businessId, complete: true }),
       })
 
       if (!response.ok) {
@@ -133,6 +133,39 @@ export default function SetupPage() {
     } catch (error) {
       console.error(error)
       alert(error instanceof Error ? error.message : "Setup failed. Please try again.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSkip = async () => {
+    setIsLoading(true)
+    try {
+      const userId = localStorage.getItem("setupUserId")
+      const businessId = localStorage.getItem("setupBusinessId")
+
+      if (!userId || !businessId) {
+        router.push("/login")
+        return
+      }
+
+      const response = await fetch("/api/setup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, businessId, complete: false }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Skip failed")
+      }
+
+      localStorage.removeItem("setupUserId")
+      localStorage.removeItem("setupBusinessId")
+      router.push("/login")
+    } catch (error) {
+      console.error(error)
+      alert(error instanceof Error ? error.message : "Skip failed. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -553,13 +586,22 @@ export default function SetupPage() {
           >
             Previous
           </Button>
-          {step < 5 ? (
-            <Button onClick={nextStep}>Next</Button>
-          ) : (
-            <Button onClick={handleSubmit} disabled={isLoading}>
-              {isLoading ? "Completing Setup..." : "Complete Setup"}
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleSkip}
+              disabled={isLoading}
+            >
+              {isLoading ? "Skipping..." : "Skip for Now"}
             </Button>
-          )}
+            {step < 5 ? (
+              <Button onClick={nextStep}>Next</Button>
+            ) : (
+              <Button onClick={handleSubmit} disabled={isLoading}>
+                {isLoading ? "Completing Setup..." : "Complete Setup"}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>

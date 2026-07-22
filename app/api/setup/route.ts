@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 export async function POST(request: Request) {
   try {
     const data = await request.json()
-    const { userId, businessId } = data
+    const { userId, businessId, complete } = data
 
     if (!userId || !businessId) {
       return NextResponse.json({ error: "Missing user or business ID" }, { status: 400 })
@@ -19,12 +19,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Business not found" }, { status: 404 })
     }
 
+    // If skipping, just mark setup as incomplete and return
+    if (complete === false) {
+      await prisma.business.update({
+        where: { id: business.id },
+        data: { setupCompleted: false }
+      })
+      return NextResponse.json({ success: true })
+    }
+
     // Update business details
     await prisma.business.update({
       where: { id: business.id },
       data: {
         logo: data.businessDetails.logo,
         address: data.businessDetails.address,
+        setupCompleted: true,
       }
     })
 

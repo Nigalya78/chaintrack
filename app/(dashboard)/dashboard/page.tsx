@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/Card"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
 
 type DashboardStats = {
+  setupCompleted: boolean
   totalPurchases: number
   totalSales: number
   totalLabourers: number
@@ -54,6 +55,24 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {!stats.setupCompleted && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex items-center gap-3">
+            <div className="text-yellow-600">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+            </div>
+            <div>
+              <h3 className="font-semibold text-yellow-800">Business Setup Pending</h3>
+              <p className="text-sm text-yellow-700">Complete your business setup to start tracking inventory and transactions. <a href="/setup" className="underline font-medium">Complete Setup</a></p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground text-sm sm:text-base">Overview of your business operations</p>
