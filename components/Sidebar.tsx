@@ -11,20 +11,22 @@ import {
   Sparkles, 
   DollarSign,
   Menu,
-  X
+  X,
+  LogOut
 } from "lucide-react";
 import { useState } from "react";
+import { signOut } from "next-auth/react";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Inventory", href: "/inventory", icon: ShoppingCart },
-  { name: "Labourers", href: "/labour", icon: Users },
-  { name: "Suppliers", href: "/suppliers", icon: ShoppingCart },
-  { name: "Shops", href: "/shops", icon: DollarSign },
   { name: "Purchases", href: "/purchases", icon: ShoppingCart },
   { name: "Labour Transactions", href: "/labour-transactions", icon: Hammer },
   { name: "Finishing", href: "/finishing-transactions", icon: Sparkles },
   { name: "Sales", href: "/sales", icon: DollarSign },
+  { name: "Inventory", href: "/inventory", icon: ShoppingCart },
+  { name: "Labourers", href: "/labour", icon: Users },
+  { name: "Vendors", href: "/vendors", icon: Users },
+  { name: "Shops", href: "/shops", icon: DollarSign },
   { name: "Adjustments", href: "/adjustments", icon: LayoutDashboard },
 ];
 
@@ -32,16 +34,17 @@ export function Sidebar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
+  const handleSignOut = async () => {
+    try {
+      await signOut({ callbackUrl: "/login" })
+    } catch (error) {
+      console.error("Signout error:", error)
+      window.location.href = "/login"
+    }
+  }
+
   return (
     <>
-      {/* Mobile menu button - hidden on mobile since we have bottom nav */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="hidden lg:flex fixed top-4 left-4 z-50 p-2 rounded-lg bg-gradient-to-r from-yellow-400 to-yellow-500 text-black shadow-md"
-      >
-        {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-      </button>
-
       {/* Sidebar */}
       <aside className={cn(
         "fixed left-0 top-0 z-40 h-screen w-64 border-r border-border bg-gradient-to-b from-white to-gray-50 transition-transform duration-300 ease-in-out",
@@ -74,6 +77,15 @@ export function Sidebar() {
               );
             })}
           </nav>
+          <div className="p-4 border-t border-border">
+            <button
+              onClick={handleSignOut}
+              className="flex items-center gap-3 w-full rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign Out
+            </button>
+          </div>
         </div>
       </aside>
 

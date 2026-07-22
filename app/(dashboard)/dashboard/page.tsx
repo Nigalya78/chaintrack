@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/Card"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
 
 type DashboardStats = {
+  businessName: string
   setupCompleted: boolean
   totalPurchases: number
   totalSales: number
@@ -30,6 +31,13 @@ export default function DashboardPage() {
       loadStats()
     }
   }, [session])
+
+  // Update business name in localStorage when stats load
+  useEffect(() => {
+    if (stats?.businessName) {
+      localStorage.setItem("businessName", stats.businessName)
+    }
+  }, [stats])
 
   async function loadStats() {
     try {
@@ -67,14 +75,14 @@ export default function DashboardPage() {
             </div>
             <div>
               <h3 className="font-semibold text-yellow-800">Business Setup Pending</h3>
-              <p className="text-sm text-yellow-700">Complete your business setup to start tracking inventory and transactions. <a href="/setup" className="underline font-medium">Complete Setup</a></p>
+              <p className="text-sm text-yellow-700">Complete your business setup to start tracking inventory and transactions. <a href="/setup" onClick={(e) => { e.preventDefault(); localStorage.setItem("fromRegistration", "false"); localStorage.setItem("previousPage", "/dashboard"); window.location.href = "/setup"; }} className="underline font-medium">Complete Setup</a></p>
             </div>
           </div>
         </div>
       )}
 
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Welcome! {stats.businessName}</h1>
         <p className="text-muted-foreground text-sm sm:text-base">Overview of your business operations</p>
       </div>
 

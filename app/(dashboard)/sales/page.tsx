@@ -182,15 +182,13 @@ export default function SalesPage() {
 
       <Card title="Sales History">
         <DataTable
-          columns={["Date", "Shop", "Type", "Chains Sold", "Rate", "Total Amount", "Notes"]}
+          columns={["Date", "Shop", "Type", "Chains", "Total"]}
           rows={sales.map((s) => [
             s.saleDate,
             s.shopName,
             s.chainType,
             s.chainsSold,
-            s.ratePerPiece ? `Rs. ${s.ratePerPiece.toFixed(2)}` : "-",
             s.totalAmount ? `Rs. ${s.totalAmount.toFixed(2)}` : "-",
-            s.notes || "-",
           ])}
         />
       </Card>

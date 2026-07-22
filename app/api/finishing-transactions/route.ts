@@ -90,6 +90,56 @@ export async function POST(request: Request) {
       }
     })
 
+    // Update inventory
+    // When chains are given to vendor, decrease chain stock
+    // When finished chains are received, increase finished chain stock
+    const chainType = body.chainType === "OT" ? "CHAIN_OT" : "CHAIN_MEDIUM"
+    const finishedChainType = body.chainType === "OT" ? "FINISHED_CHAIN_OT" : "FINISHED_CHAIN_MEDIUM"
+
+    if (body.chainsGiven > 0) {
+      await prisma.inventory.upsert({
+        where: {
+          businessId_type: {
+            businessId: business.id,
+            type: chainType,
+          }
+        },
+        update: {
+          quantity: {
+            decrement: body.chainsGiven,
+          }
+        },
+        create: {
+          businessId: business.id,
+          type: chainType,
+          quantity: -body.chainsGiven,
+          unit: "pieces",
+        }
+      })
+    }
+
+    if (body.finishedChainsReceived > 0) {
+      await prisma.inventory.upsert({
+        where: {
+          businessId_type: {
+            businessId: business.id,
+            type: finishedChainType,
+          }
+        },
+        update: {
+          quantity: {
+            increment: body.finishedChainsReceived,
+          }
+        },
+        create: {
+          businessId: business.id,
+          type: finishedChainType,
+          quantity: body.finishedChainsReceived,
+          unit: "pieces",
+        }
+      })
+    }
+
     return NextResponse.json(transaction)
   } catch (error) {
     console.error("Finishing transaction creation error:", error)

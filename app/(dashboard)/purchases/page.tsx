@@ -185,14 +185,12 @@ export default function PurchasesPage() {
 
       <Card title="Purchase History">
         <DataTable
-          columns={["Date", "Supplier", "Type", "Kg", "Packets", "Price/Kg", "Total Cost"]}
+          columns={["Date", "Supplier", "Type", "Kg", "Total"]}
           rows={purchases.map((purchase) => [
             purchase.purchaseDate,
             purchase.supplierName,
             purchase.chainType,
             purchase.kilograms.toFixed(3),
-            purchase.packetCount,
-            `Rs. ${purchase.pricePerKg.toFixed(2)}`,
             `Rs. ${purchase.totalCost.toFixed(2)}`,
           ])}
         />

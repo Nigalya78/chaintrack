@@ -14,14 +14,14 @@ import {
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Inventory", href: "/inventory", icon: ShoppingCart },
-  { name: "Labourers", href: "/labour", icon: Users },
-  { name: "Suppliers", href: "/suppliers", icon: ShoppingCart },
-  { name: "Shops", href: "/shops", icon: DollarSign },
   { name: "Purchases", href: "/purchases", icon: ShoppingCart },
-  { name: "Labour Tx", href: "/labour-transactions", icon: Hammer },
+  { name: "Labour Transactions", href: "/labour-transactions", icon: Hammer },
   { name: "Finishing", href: "/finishing-transactions", icon: Sparkles },
   { name: "Sales", href: "/sales", icon: DollarSign },
+  { name: "Inventory", href: "/inventory", icon: ShoppingCart },
+  { name: "Labourers", href: "/labour", icon: Users },
+  { name: "Vendors", href: "/vendors", icon: Users },
+  { name: "Shops", href: "/shops", icon: DollarSign },
   { name: "Adjustments", href: "/adjustments", icon: LayoutDashboard },
 ];
 

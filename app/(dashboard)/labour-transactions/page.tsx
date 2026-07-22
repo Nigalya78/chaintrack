@@ -185,16 +185,13 @@ export default function LabourTransactionsPage() {
 
       <Card title="Transaction History">
         <DataTable
-          columns={["Date", "Labourer", "Type", "Given", "Received", "Rate", "Amount", "Notes"]}
+          columns={["Date", "Labourer", "Type", "Given", "Received"]}
           rows={transactions.map((t) => [
             t.transactionDate,
             t.labourerName,
             t.chainType,
             t.chainsGiven,
             t.chainsReceived,
-            t.ratePerPiece ? `Rs. ${t.ratePerPiece.toFixed(2)}` : "-",
-            t.amountGiven ? `Rs. ${t.amountGiven.toFixed(2)}` : "-",
-            t.notes || "-",
           ])}
         />
       </Card>

@@ -79,6 +79,10 @@ export async function POST(request: Request) {
         data: {
           businessId: business.id,
           name: vendor.name,
+          phone: vendor.phone || null,
+          area: vendor.area || null,
+          rateOt: vendor.rateOt || null,
+          rateMedium: vendor.rateMedium || null,
         }
       })
 
@@ -100,6 +104,8 @@ export async function POST(request: Request) {
       { type: "KANNI_MEDIUM", quantity: data.openingInventory.kanniMediumKg, unit: "kg" },
       { type: "CHAIN_OT", quantity: data.openingInventory.otChains, unit: "pieces" },
       { type: "CHAIN_MEDIUM", quantity: data.openingInventory.mediumChains, unit: "pieces" },
+      { type: "FINISHED_CHAIN_OT", quantity: data.openingInventory.finishingOtChains || 0, unit: "pieces" },
+      { type: "FINISHED_CHAIN_MEDIUM", quantity: data.openingInventory.finishingMediumChains || 0, unit: "pieces" },
     ]
 
     for (const inv of inventoryTypes) {

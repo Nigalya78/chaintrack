@@ -102,6 +102,60 @@ export async function POST(request: Request) {
       }
     })
 
+    // Update inventory
+    // When kanni is given to labourer, decrease kanni stock
+    // When chains are received from labourer, increase chain stock
+    const kanniType = body.chainType === "OT" ? "KANNI_OT" : "KANNI_MEDIUM"
+    const chainType = body.chainType === "OT" ? "CHAIN_OT" : "CHAIN_MEDIUM"
+
+    // Calculate kanni given (chains given / chains per kg)
+    const chainsPerKg = body.chainType === "OT" ? 24 : 40
+    const kanniGiven = body.chainsGiven / chainsPerKg
+
+    if (kanniGiven > 0) {
+      await prisma.inventory.upsert({
+        where: {
+          businessId_type: {
+            businessId: business.id,
+            type: kanniType,
+          }
+        },
+        update: {
+          quantity: {
+            decrement: kanniGiven,
+          }
+        },
+        create: {
+          businessId: business.id,
+          type: kanniType,
+          quantity: -kanniGiven,
+          unit: "kg",
+        }
+      })
+    }
+
+    if (body.chainsReceived > 0) {
+      await prisma.inventory.upsert({
+        where: {
+          businessId_type: {
+            businessId: business.id,
+            type: chainType,
+          }
+        },
+        update: {
+          quantity: {
+            increment: body.chainsReceived,
+          }
+        },
+        create: {
+          businessId: business.id,
+          type: chainType,
+          quantity: body.chainsReceived,
+          unit: "pieces",
+        }
+      })
+    }
+
     return NextResponse.json(transaction)
   } catch (error) {
     console.error("Labour transaction creation error:", error)

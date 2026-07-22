@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/Card"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
+import { PasswordInput } from "@/components/ui/PasswordInput"
 import { loginSchema, type LoginInput } from "@/lib/validations"
 
 export default function LoginPage() {
@@ -77,8 +78,7 @@ export default function LoginPage() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Password</label>
-              <Input
-                type="password"
+              <PasswordInput
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
@@ -94,12 +94,14 @@ export default function LoginPage() {
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
 
-            <p className="text-sm text-center text-muted-foreground">
-              Don't have an account?{" "}
-              <a href="/register" className="text-primary hover:underline">
-                Create one
+            <div className="flex justify-between text-sm">
+              <a href="/forgot-password" className="text-primary hover:underline">
+                Forgot password?
               </a>
-            </p>
+              <a href="/register" className="text-primary hover:underline">
+                Create account
+              </a>
+            </div>
           </form>
       </Card>
       </div>

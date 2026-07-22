@@ -182,15 +182,13 @@ export default function FinishingTransactionsPage() {
 
       <Card title="Transaction History">
         <DataTable
-          columns={["Date", "Vendor", "Type", "Given", "Received", "Rate", "Notes"]}
+          columns={["Date", "Vendor", "Type", "Given", "Received"]}
           rows={transactions.map((t) => [
             t.transactionDate,
             t.vendorName,
             t.chainType,
             t.chainsGiven,
             t.finishedChainsReceived,
-            t.ratePerPiece ? `Rs. ${t.ratePerPiece.toFixed(2)}` : "-",
-            t.notes || "-",
           ])}
         />
       </Card>

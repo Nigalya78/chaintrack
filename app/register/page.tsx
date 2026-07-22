@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/Card"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
+import { PasswordInput } from "@/components/ui/PasswordInput"
 import { registerSchema, type RegisterInput } from "@/lib/validations"
 
 export default function RegisterPage() {
@@ -28,23 +29,17 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Registration form submitted")
     setIsLoading(true)
     setErrors({})
 
     try {
-      console.log("Validating form data:", formData)
       const validated = registerSchema.parse(formData)
-      console.log("Validation passed")
       
-      console.log("Calling /api/register")
       const response = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(validated),
       })
-
-      console.log("Response status:", response.status)
 
       if (!response.ok) {
         const error = await response.text()
@@ -53,9 +48,9 @@ export default function RegisterPage() {
       }
 
       const result = await response.json()
-      console.log("Registration success:", result)
       localStorage.setItem("setupUserId", result.userId)
       localStorage.setItem("setupBusinessId", result.businessId)
+      localStorage.setItem("fromRegistration", "true")
       router.push("/setup")
     } catch (error) {
       console.error("Registration failed:", error)
@@ -160,8 +155,7 @@ export default function RegisterPage() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Password</label>
-              <Input
-                type="password"
+              <PasswordInput
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
@@ -175,8 +169,7 @@ export default function RegisterPage() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Confirm Password</label>
-              <Input
-                type="password"
+              <PasswordInput
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}

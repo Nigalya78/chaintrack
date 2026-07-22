@@ -17,8 +17,12 @@ type Labourer = {
 
 type Vendor = {
   name: string
+  phone: string
+  area: string
   otChains: number
   mediumChains: number
+  rateOt: number
+  rateMedium: number
 }
 
 type SetupData = {
@@ -67,8 +71,12 @@ export default function SetupPage() {
 
   const [newVendor, setNewVendor] = useState<Vendor>({
     name: "",
+    phone: "",
+    area: "",
     otChains: 0,
     mediumChains: 0,
+    rateOt: 0,
+    rateMedium: 0,
   })
 
   const addLabourer = () => {
@@ -94,7 +102,7 @@ export default function SetupPage() {
         ...prev,
         vendors: [...prev.vendors, { ...newVendor }],
       }))
-      setNewVendor({ name: "", otChains: 0, mediumChains: 0 })
+      setNewVendor({ name: "", phone: "", area: "", otChains: 0, mediumChains: 0, rateOt: 0, rateMedium: 0 })
     }
   }
 
@@ -110,6 +118,8 @@ export default function SetupPage() {
     try {
       const userId = localStorage.getItem("setupUserId")
       const businessId = localStorage.getItem("setupBusinessId")
+      const fromRegistration = localStorage.getItem("fromRegistration") === "true"
+      const previousPage = localStorage.getItem("previousPage")
 
       if (!userId || !businessId) {
         router.push("/login")
@@ -129,7 +139,18 @@ export default function SetupPage() {
 
       localStorage.removeItem("setupUserId")
       localStorage.removeItem("setupBusinessId")
-      router.push("/login")
+      localStorage.removeItem("fromRegistration")
+      localStorage.removeItem("previousPage")
+      
+      // If coming from registration, redirect to login
+      // Otherwise, go to the previous page or dashboard
+      if (fromRegistration) {
+        router.push("/login")
+      } else if (previousPage) {
+        router.push(previousPage)
+      } else {
+        router.push("/dashboard")
+      }
     } catch (error) {
       console.error(error)
       alert(error instanceof Error ? error.message : "Setup failed. Please try again.")
@@ -143,26 +164,48 @@ export default function SetupPage() {
     try {
       const userId = localStorage.getItem("setupUserId")
       const businessId = localStorage.getItem("setupBusinessId")
+      const fromRegistration = localStorage.getItem("fromRegistration") === "true"
+      const previousPage = localStorage.getItem("previousPage")
 
-      if (!userId || !businessId) {
+
+      // If coming from registration, we need userId/businessId
+      // If already logged in (from dashboard/profile), just skip without API call
+      if (fromRegistration) {
+        if (!userId || !businessId) {
+          router.push("/login")
+          return
+        }
+
+        const response = await fetch("/api/setup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId, businessId, complete: false }),
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || "Skip failed")
+        }
+
+        localStorage.removeItem("setupUserId")
+        localStorage.removeItem("setupBusinessId")
+        localStorage.removeItem("fromRegistration")
+        localStorage.removeItem("previousPage")
+        
         router.push("/login")
-        return
+      } else {
+        // Already logged in user - just go back to previous page or dashboard
+        localStorage.removeItem("setupUserId")
+        localStorage.removeItem("setupBusinessId")
+        localStorage.removeItem("fromRegistration")
+        localStorage.removeItem("previousPage")
+        
+        if (previousPage) {
+          router.push(previousPage)
+        } else {
+          router.push("/dashboard")
+        }
       }
-
-      const response = await fetch("/api/setup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, businessId, complete: false }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Skip failed")
-      }
-
-      localStorage.removeItem("setupUserId")
-      localStorage.removeItem("setupBusinessId")
-      router.push("/login")
     } catch (error) {
       console.error(error)
       alert(error instanceof Error ? error.message : "Skip failed. Please try again.")
@@ -317,45 +360,6 @@ export default function SetupPage() {
                   />
                 </div>
               </div>
-              <div className="mt-4 pt-4 border-t">
-                <p className="text-sm font-medium mb-3">Chains currently with finishing vendors:</p>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">OT Chains (with finishing)</label>
-                    <input
-                      type="number"
-                      value={data.openingInventory.finishingOtChains}
-                      onChange={(e) =>
-                        setData((prev) => ({
-                          ...prev,
-                          openingInventory: {
-                            ...prev.openingInventory,
-                            finishingOtChains: parseInt(e.target.value) || 0,
-                          },
-                        }))
-                      }
-                      className="w-full px-3 py-2 border rounded-md"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Medium Chains (with finishing)</label>
-                    <input
-                      type="number"
-                      value={data.openingInventory.finishingMediumChains}
-                      onChange={(e) =>
-                        setData((prev) => ({
-                          ...prev,
-                          openingInventory: {
-                            ...prev.openingInventory,
-                            finishingMediumChains: parseInt(e.target.value) || 0,
-                          },
-                        }))
-                      }
-                      className="w-full px-3 py-2 border rounded-md"
-                    />
-                  </div>
-                </div>
-              </div>
             </div>
           </Card>
         )}
@@ -450,7 +454,7 @@ export default function SetupPage() {
               Add finishing vendors and their current pending chains
             </p>
             <div className="space-y-4 mb-6">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Vendor Name</label>
                   <input
@@ -458,6 +462,28 @@ export default function SetupPage() {
                     value={newVendor.name}
                     onChange={(e) =>
                       setNewVendor((prev) => ({ ...prev, name: e.target.value }))
+                    }
+                    className="w-full px-3 py-2 border rounded-md"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Phone</label>
+                  <input
+                    type="tel"
+                    value={newVendor.phone}
+                    onChange={(e) =>
+                      setNewVendor((prev) => ({ ...prev, phone: e.target.value }))
+                    }
+                    className="w-full px-3 py-2 border rounded-md"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Area</label>
+                  <input
+                    type="text"
+                    value={newVendor.area}
+                    onChange={(e) =>
+                      setNewVendor((prev) => ({ ...prev, area: e.target.value }))
                     }
                     className="w-full px-3 py-2 border rounded-md"
                   />
@@ -490,17 +516,51 @@ export default function SetupPage() {
                     className="w-full px-3 py-2 border rounded-md"
                   />
                 </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Rate OT (₹/piece)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={newVendor.rateOt}
+                    onChange={(e) =>
+                      setNewVendor((prev) => ({
+                        ...prev,
+                        rateOt: parseFloat(e.target.value) || 0,
+                      }))
+                    }
+                    className="w-full px-3 py-2 border rounded-md"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Rate Medium (₹/piece)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={newVendor.rateMedium}
+                    onChange={(e) =>
+                      setNewVendor((prev) => ({
+                        ...prev,
+                        rateMedium: parseFloat(e.target.value) || 0,
+                      }))
+                    }
+                    className="w-full px-3 py-2 border rounded-md"
+                  />
+                </div>
               </div>
               <Button onClick={addVendor}>Add Vendor</Button>
             </div>
 
             {data.vendors.length > 0 && (
               <DataTable
-                columns={["Name", "OT Chains", "Medium Chains", "Action"]}
+                columns={["Name", "Phone", "Area", "OT Chains", "Medium Chains", "Rate OT", "Rate Medium", "Action"]}
                 rows={data.vendors.map((vendor, index) => [
                   vendor.name,
+                  vendor.phone || "-",
+                  vendor.area || "-",
                   vendor.otChains,
                   vendor.mediumChains,
+                  vendor.rateOt ? `₹${vendor.rateOt}` : "-",
+                  vendor.rateMedium ? `₹${vendor.rateMedium}` : "-",
                   <button
                     key={index}
                     onClick={() => removeVendor(index)}

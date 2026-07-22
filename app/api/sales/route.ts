@@ -90,6 +90,29 @@ export async function POST(request: Request) {
       }
     })
 
+    // Update inventory - decrease finished chain stock
+    const finishedChainType = body.chainType === "OT" ? "FINISHED_CHAIN_OT" : "FINISHED_CHAIN_MEDIUM"
+
+    await prisma.inventory.upsert({
+      where: {
+        businessId_type: {
+          businessId: business.id,
+          type: finishedChainType,
+        }
+      },
+      update: {
+        quantity: {
+          decrement: body.chainCount,
+        }
+      },
+      create: {
+        businessId: business.id,
+        type: finishedChainType,
+        quantity: -body.chainCount,
+        unit: "pieces",
+      }
+    })
+
     return NextResponse.json(sale)
   } catch (error) {
     console.error("Sale creation error:", error)

@@ -115,6 +115,7 @@ export async function GET(request: Request) {
     ]
 
     const result = {
+      businessName: business.name,
       setupCompleted: business.setupCompleted,
       totalPurchases: totalPurchases._sum.totalCost?.toNumber() || 0,
       totalSales: totalSales._sum.totalAmount?.toNumber() || 0,

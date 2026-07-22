@@ -89,6 +89,28 @@ export async function POST(request: Request) {
       }
     })
 
+    // Update inventory - increase kanni stock
+    const kanniType = body.chainType === "OT" ? "KANNI_OT" : "KANNI_MEDIUM"
+    await prisma.inventory.upsert({
+      where: {
+        businessId_type: {
+          businessId: business.id,
+          type: kanniType,
+        }
+      },
+      update: {
+        quantity: {
+          increment: body.kilograms,
+        }
+      },
+      create: {
+        businessId: business.id,
+        type: kanniType,
+        quantity: body.kilograms,
+        unit: "kg",
+      }
+    })
+
     return NextResponse.json(purchase)
   } catch (error) {
     console.error("Purchase creation error:", error)

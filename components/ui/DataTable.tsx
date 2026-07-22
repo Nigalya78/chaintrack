@@ -8,11 +8,11 @@ type DataTableProps = {
 export function DataTable({ columns, rows }: Readonly<DataTableProps>) {
   return (
     <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
-      <table className="w-full min-w-[600px]">
+      <table className="w-full min-w-full">
         <thead>
           <tr className="border-b">
             {columns.map((column) => (
-              <th key={column} className="text-left py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium text-muted-foreground whitespace-nowrap">
+              <th key={column} className="text-left py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium text-muted-foreground">
                 {column}
               </th>
             ))}
@@ -32,7 +32,7 @@ export function DataTable({ columns, rows }: Readonly<DataTableProps>) {
               return (
                 <tr key={rowKey} className="border-b last:border-0">
                   {row.map((value, cellIdx) => (
-                    <td key={`${idx}-${cellIdx}`} className="py-3 px-2 sm:px-4 text-xs sm:text-sm whitespace-nowrap">
+                    <td key={`${idx}-${cellIdx}`} className="py-3 px-2 sm:px-4 text-xs sm:text-sm">
                       {value}
                     </td>
                   ))}
