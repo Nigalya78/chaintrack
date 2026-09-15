@@ -5,21 +5,21 @@ import { useSession } from "next-auth/react"
 import { Card } from "@/components/ui/Card"
 import { DataTable } from "@/components/ui/DataTable"
 import { Button } from "@/components/ui/Button"
+import { Input } from "@/components/ui/Input"
+import { NumericInput } from "@/components/ui/NumericInput"
 
-type Shop = {
-  id: string
-  name: string
-}
+const SELECT_CLS = "w-full px-4 py-2.5 rounded-lg border border-border/50 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring hover:border-border transition-all duration-200"
+
+type Shop = { id: string; name: string }
 
 type Sale = {
   id: string
   shopName: string
   chainType: string
-  chainsSold: number
-  ratePerPiece: number | null
+  chainCount: number
+  pricePerChain: number | null
   totalAmount: number | null
   saleDate: string
-  notes: string | null
 }
 
 export default function SalesPage() {
@@ -31,24 +31,25 @@ export default function SalesPage() {
   const [formData, setFormData] = useState({
     shopId: "",
     chainType: "OT",
-    chainsSold: "",
-    ratePerPiece: "",
+    chainCount: "",
+    pricePerChain: "",
     saleDate: new Date().toISOString().slice(0, 10),
     notes: "",
   })
 
+  // Live total preview
+  const totalPreview =
+    formData.chainCount && formData.pricePerChain
+      ? (parseFloat(formData.chainCount) * parseFloat(formData.pricePerChain)).toFixed(2)
+      : null
+
   useEffect(() => {
-    if (session?.user) {
-      loadData()
-    }
+    if (session?.user) loadData()
   }, [session])
 
   async function loadData() {
     try {
-      const [shopsRes, salesRes] = await Promise.all([
-        fetch("/api/shops"),
-        fetch("/api/sales"),
-      ])
+      const [shopsRes, salesRes] = await Promise.all([fetch("/api/shops"), fetch("/api/sales")])
       if (shopsRes.ok) setShops(await shopsRes.json())
       if (salesRes.ok) setSales(await salesRes.json())
     } catch (error) {
@@ -65,21 +66,19 @@ export default function SalesPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...formData,
-          chainsSold: parseInt(formData.chainsSold),
-          ratePerPiece: formData.ratePerPiece ? parseFloat(formData.ratePerPiece) : null,
+          shopId: formData.shopId,
+          chainType: formData.chainType,
+          chainCount: parseInt(formData.chainCount),
+          pricePerChain: formData.pricePerChain ? parseFloat(formData.pricePerChain) : null,
+          saleDate: formData.saleDate,
+          notes: formData.notes || null,
         }),
       })
-
       if (response.ok) {
         setShowForm(false)
         setFormData({
-          shopId: "",
-          chainType: "OT",
-          chainsSold: "",
-          ratePerPiece: "",
-          saleDate: new Date().toISOString().slice(0, 10),
-          notes: "",
+          shopId: "", chainType: "OT", chainCount: "", pricePerChain: "",
+          saleDate: new Date().toISOString().slice(0, 10), notes: "",
         })
         loadData()
       }
@@ -88,16 +87,14 @@ export default function SalesPage() {
     }
   }
 
-  if (loading) {
-    return <div className="p-8">Loading...</div>
-  }
+  if (loading) return <div className="p-8 text-muted-foreground text-sm">Loading...</div>
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Sales</h1>
-          <p className="text-muted-foreground">Record chain sales to shops</p>
+          <p className="text-muted-foreground text-sm">Record chain sales to shops</p>
         </div>
         <Button onClick={() => setShowForm(!showForm)}>
           {showForm ? "Cancel" : "Add Sale"}
@@ -110,71 +107,58 @@ export default function SalesPage() {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Shop</label>
-                <select
-                  required
-                  value={formData.shopId}
+                <select required value={formData.shopId}
                   onChange={(e) => setFormData({ ...formData, shopId: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md"
-                >
+                  className={SELECT_CLS}>
                   <option value="">Select Shop</option>
-                  {shops.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
+                  {shops.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Chain Type</label>
-                <select
-                  value={formData.chainType}
+                <select value={formData.chainType}
                   onChange={(e) => setFormData({ ...formData, chainType: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md"
-                >
+                  className={SELECT_CLS}>
                   <option value="OT">OT</option>
                   <option value="MEDIUM">Medium</option>
                 </select>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Chains Sold</label>
-                <input
-                  type="number"
-                  required
-                  value={formData.chainsSold}
-                  onChange={(e) => setFormData({ ...formData, chainsSold: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md"
+                <NumericInput allowDecimal={false} required
+                  value={formData.chainCount}
+                  onChange={(v) => setFormData({ ...formData, chainCount: v })}
+                  placeholder="Number of chains"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Rate per Piece</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.ratePerPiece}
-                  onChange={(e) => setFormData({ ...formData, ratePerPiece: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md"
+                <label className="text-sm font-medium">Rate per Chain (₹)</label>
+                <NumericInput step="0.01"
+                  value={formData.pricePerChain}
+                  onChange={(v) => setFormData({ ...formData, pricePerChain: v })}
+                  placeholder="Price per chain"
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Sale Date</label>
-                <input
-                  type="date"
-                  required
-                  value={formData.saleDate}
+                <input type="date" required value={formData.saleDate}
                   onChange={(e) => setFormData({ ...formData, saleDate: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md"
-                />
+                  className={SELECT_CLS} />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Notes</label>
-                <input
-                  type="text"
-                  value={formData.notes}
+                <Input type="text" value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md"
-                />
+                  placeholder="Optional notes" />
               </div>
             </div>
+            {totalPreview && (
+              <div className="rounded-lg bg-yellow-50 border border-yellow-200 px-4 py-3 text-sm">
+                <span className="text-yellow-800 font-medium">Total Amount: </span>
+                <span className="text-yellow-900 font-bold">₹{totalPreview}</span>
+                <span className="text-yellow-700 ml-2">({formData.chainCount} chains × ₹{formData.pricePerChain})</span>
+              </div>
+            )}
             <Button type="submit" variant="gold">Save Sale</Button>
           </form>
         </Card>
@@ -182,13 +166,14 @@ export default function SalesPage() {
 
       <Card title="Sales History">
         <DataTable
-          columns={["Date", "Shop", "Type", "Chains", "Total"]}
+          columns={["Date", "Shop", "Type", "Chains", "Rate", "Total"]}
           rows={sales.map((s) => [
             s.saleDate,
             s.shopName,
             s.chainType,
-            s.chainsSold,
-            s.totalAmount ? `Rs. ${s.totalAmount.toFixed(2)}` : "-",
+            s.chainCount,
+            s.pricePerChain ? `₹${Number(s.pricePerChain).toFixed(2)}` : "-",
+            s.totalAmount ? `₹${Number(s.totalAmount).toFixed(2)}` : "-",
           ])}
         />
       </Card>

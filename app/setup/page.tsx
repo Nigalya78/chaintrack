@@ -7,12 +7,15 @@ import { Card } from "@/components/ui/Card"
 import { Button } from "@/components/ui/Button"
 import { DataTable } from "@/components/ui/DataTable"
 import { Input } from "@/components/ui/Input"
+import { NumericInput } from "@/components/ui/NumericInput"
 
 type Labourer = {
   name: string
   phone: string
   otChains: number
   mediumChains: number
+  rateOt: number
+  rateMedium: number
 }
 
 type Vendor = {
@@ -67,6 +70,8 @@ export default function SetupPage() {
     phone: "",
     otChains: 0,
     mediumChains: 0,
+    rateOt: 0,
+    rateMedium: 0,
   })
 
   const [newVendor, setNewVendor] = useState<Vendor>({
@@ -85,7 +90,7 @@ export default function SetupPage() {
         ...prev,
         labourers: [...prev.labourers, { ...newLabourer }],
       }))
-      setNewLabourer({ name: "", phone: "", otChains: 0, mediumChains: 0 })
+      setNewLabourer({ name: "", phone: "", otChains: 0, mediumChains: 0, rateOt: 0, rateMedium: 0 })
     }
   }
 
@@ -291,72 +296,66 @@ export default function SetupPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">OT Kanni (kg)</label>
-                  <input
-                    type="number"
+                  <NumericInput
                     step="0.001"
                     value={data.openingInventory.kanniOtKg}
-                    onChange={(e) =>
+                    onChange={(v) =>
                       setData((prev) => ({
                         ...prev,
                         openingInventory: {
                           ...prev.openingInventory,
-                          kanniOtKg: parseFloat(e.target.value) || 0,
+                          kanniOtKg: parseFloat(v) || 0,
                         },
                       }))
                     }
-                    className="w-full px-3 py-2 border rounded-md"
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Medium Kanni (kg)</label>
-                  <input
-                    type="number"
+                  <NumericInput
                     step="0.001"
                     value={data.openingInventory.kanniMediumKg}
-                    onChange={(e) =>
+                    onChange={(v) =>
                       setData((prev) => ({
                         ...prev,
                         openingInventory: {
                           ...prev.openingInventory,
-                          kanniMediumKg: parseFloat(e.target.value) || 0,
+                          kanniMediumKg: parseFloat(v) || 0,
                         },
                       }))
                     }
-                    className="w-full px-3 py-2 border rounded-md"
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">OT Chains</label>
-                  <input
-                    type="number"
+                  <NumericInput
+                    allowDecimal={false}
                     value={data.openingInventory.otChains}
-                    onChange={(e) =>
+                    onChange={(v) =>
                       setData((prev) => ({
                         ...prev,
                         openingInventory: {
                           ...prev.openingInventory,
-                          otChains: parseInt(e.target.value) || 0,
+                          otChains: parseInt(v) || 0,
                         },
                       }))
                     }
-                    className="w-full px-3 py-2 border rounded-md"
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Medium Chains</label>
-                  <input
-                    type="number"
+                  <NumericInput
+                    allowDecimal={false}
                     value={data.openingInventory.mediumChains}
-                    onChange={(e) =>
+                    onChange={(v) =>
                       setData((prev) => ({
                         ...prev,
                         openingInventory: {
                           ...prev.openingInventory,
-                          mediumChains: parseInt(e.target.value) || 0,
+                          mediumChains: parseInt(v) || 0,
                         },
                       }))
                     }
-                    className="w-full px-3 py-2 border rounded-md"
                   />
                 </div>
               </div>
@@ -368,58 +367,62 @@ export default function SetupPage() {
         {step === 3 && (
           <Card title="Step 3: Labourers">
             <p className="text-sm text-muted-foreground mb-4">
-              Add labourers and their current pending chains
+              Add labourers, their pending chains, and their per-piece rates
             </p>
             <div className="space-y-4 mb-6">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Name</label>
-                  <input
+                  <Input
                     type="text"
                     value={newLabourer.name}
-                    onChange={(e) =>
-                      setNewLabourer((prev) => ({ ...prev, name: e.target.value }))
-                    }
-                    className="w-full px-3 py-2 border rounded-md"
+                    onChange={(e) => setNewLabourer((prev) => ({ ...prev, name: e.target.value }))}
+                    placeholder="Labourer name"
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Phone (Optional)</label>
-                  <input
+                  <Input
                     type="tel"
                     value={newLabourer.phone}
-                    onChange={(e) =>
-                      setNewLabourer((prev) => ({ ...prev, phone: e.target.value }))
-                    }
-                    className="w-full px-3 py-2 border rounded-md"
+                    onChange={(e) => setNewLabourer((prev) => ({ ...prev, phone: e.target.value }))}
+                    placeholder="Phone number"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">OT Chains</label>
-                  <input
-                    type="number"
+                  <label className="text-sm font-medium">OT Rate (₹/piece)</label>
+                  <NumericInput
+                    step="0.01"
+                    value={newLabourer.rateOt}
+                    onChange={(v) => setNewLabourer((prev) => ({ ...prev, rateOt: parseFloat(v) || 0 }))}
+                    placeholder="Rate per OT chain"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Medium Rate (₹/piece)</label>
+                  <NumericInput
+                    step="0.01"
+                    value={newLabourer.rateMedium}
+                    onChange={(v) => setNewLabourer((prev) => ({ ...prev, rateMedium: parseFloat(v) || 0 }))}
+                    placeholder="Rate per Medium chain"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">OT Chains (pending)</label>
+                  <NumericInput
+                    allowDecimal={false}
                     value={newLabourer.otChains}
-                    onChange={(e) =>
-                      setNewLabourer((prev) => ({
-                        ...prev,
-                        otChains: parseInt(e.target.value) || 0,
-                      }))
-                    }
-                    className="w-full px-3 py-2 border rounded-md"
+                    onChange={(v) => setNewLabourer((prev) => ({ ...prev, otChains: parseInt(v) || 0 }))}
+                    placeholder="Chains currently with labourer"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Medium Chains</label>
-                  <input
-                    type="number"
+                  <label className="text-sm font-medium">Medium Chains (pending)</label>
+                  <NumericInput
+                    allowDecimal={false}
                     value={newLabourer.mediumChains}
-                    onChange={(e) =>
-                      setNewLabourer((prev) => ({
-                        ...prev,
-                        mediumChains: parseInt(e.target.value) || 0,
-                      }))
-                    }
-                    className="w-full px-3 py-2 border rounded-md"
+                    onChange={(v) => setNewLabourer((prev) => ({ ...prev, mediumChains: parseInt(v) || 0 }))}
+                    placeholder="Chains currently with labourer"
                   />
                 </div>
               </div>
@@ -428,16 +431,18 @@ export default function SetupPage() {
 
             {data.labourers.length > 0 && (
               <DataTable
-                columns={["Name", "Phone", "OT Chains", "Medium Chains", "Action"]}
+                columns={["Name", "Phone", "OT Rate", "Med Rate", "OT Chains", "Med Chains", "Action"]}
                 rows={data.labourers.map((labourer, index) => [
                   labourer.name,
                   labourer.phone || "-",
+                  labourer.rateOt ? `₹${labourer.rateOt}` : "-",
+                  labourer.rateMedium ? `₹${labourer.rateMedium}` : "-",
                   labourer.otChains,
                   labourer.mediumChains,
                   <button
                     key={index}
                     onClick={() => removeLabourer(index)}
-                    className="text-destructive hover:underline"
+                    className="text-destructive hover:underline text-sm"
                   >
                     Remove
                   </button>,
@@ -489,61 +494,55 @@ export default function SetupPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">OT Chains</label>
-                  <input
-                    type="number"
+                  <label className="text-sm font-medium">OT Chains (pending)</label>
+                  <NumericInput
+                    allowDecimal={false}
                     value={newVendor.otChains}
-                    onChange={(e) =>
+                    onChange={(v) =>
                       setNewVendor((prev) => ({
                         ...prev,
-                        otChains: parseInt(e.target.value) || 0,
+                        otChains: parseInt(v) || 0,
                       }))
                     }
-                    className="w-full px-3 py-2 border rounded-md"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Medium Chains</label>
-                  <input
-                    type="number"
+                  <label className="text-sm font-medium">Medium Chains (pending)</label>
+                  <NumericInput
+                    allowDecimal={false}
                     value={newVendor.mediumChains}
-                    onChange={(e) =>
+                    onChange={(v) =>
                       setNewVendor((prev) => ({
                         ...prev,
-                        mediumChains: parseInt(e.target.value) || 0,
+                        mediumChains: parseInt(v) || 0,
                       }))
                     }
-                    className="w-full px-3 py-2 border rounded-md"
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Rate OT (₹/piece)</label>
-                  <input
-                    type="number"
+                  <NumericInput
                     step="0.01"
                     value={newVendor.rateOt}
-                    onChange={(e) =>
+                    onChange={(v) =>
                       setNewVendor((prev) => ({
                         ...prev,
-                        rateOt: parseFloat(e.target.value) || 0,
+                        rateOt: parseFloat(v) || 0,
                       }))
                     }
-                    className="w-full px-3 py-2 border rounded-md"
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Rate Medium (₹/piece)</label>
-                  <input
-                    type="number"
+                  <NumericInput
                     step="0.01"
                     value={newVendor.rateMedium}
-                    onChange={(e) =>
+                    onChange={(v) =>
                       setNewVendor((prev) => ({
                         ...prev,
-                        rateMedium: parseFloat(e.target.value) || 0,
+                        rateMedium: parseFloat(v) || 0,
                       }))
                     }
-                    className="w-full px-3 py-2 border rounded-md"
                   />
                 </div>
               </div>
@@ -605,10 +604,12 @@ export default function SetupPage() {
                 <h3 className="font-semibold mb-2">Labourers ({data.labourers.length})</h3>
                 {data.labourers.length > 0 ? (
                   <DataTable
-                    columns={["Name", "Phone", "OT Chains", "Medium Chains"]}
+                    columns={["Name", "Phone", "OT Rate", "Med Rate", "OT Chains", "Med Chains"]}
                     rows={data.labourers.map((labourer) => [
                       labourer.name,
                       labourer.phone || "-",
+                      labourer.rateOt ? `₹${labourer.rateOt}` : "-",
+                      labourer.rateMedium ? `₹${labourer.rateMedium}` : "-",
                       labourer.otChains,
                       labourer.mediumChains,
                     ])}

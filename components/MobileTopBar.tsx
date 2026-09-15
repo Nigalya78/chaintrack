@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { signOut } from "next-auth/react"
-import { User, LogOut } from "lucide-react"
+import { User, LogOut, Menu } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 export function MobileTopBar() {
@@ -12,16 +12,9 @@ export function MobileTopBar() {
   const router = useRouter()
 
   useEffect(() => {
-    // Check localStorage first for cached data
     const cachedBusinessName = localStorage.getItem("businessName")
-    if (cachedBusinessName) {
-      setBusinessName(cachedBusinessName)
-    }
-
-    // Only fetch if we have a session and no cached data
-    if (session?.user && !cachedBusinessName) {
-      fetchBusinessName()
-    }
+    if (cachedBusinessName) setBusinessName(cachedBusinessName)
+    if (session?.user && !cachedBusinessName) fetchBusinessName()
   }, [session])
 
   async function fetchBusinessName() {
@@ -37,39 +30,54 @@ export function MobileTopBar() {
     }
   }
 
+  function handleToggleSidebar() {
+    // Dispatch a custom event that Sidebar listens to
+    window.dispatchEvent(new CustomEvent("toggle-sidebar"))
+  }
+
   async function handleSignOut() {
     try {
       localStorage.removeItem("businessName")
       await signOut({ callbackUrl: "/login" })
     } catch (error) {
       console.error("Signout error:", error)
-      // Fallback: redirect to login even if signout fails
       window.location.href = "/login"
     }
   }
 
   return (
-    <div className="lg:hidden sticky top-0 z-50 -mx-4 sm:-mx-6 lg:-mx-8">
-      <div className="bg-white p-3 shadow-md border-b">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-bold text-gray-900">ChainTrack</h1>
-            {businessName && (
-              <p className="text-sm text-gray-600">{businessName}</p>
-            )}
+    <div className="lg:hidden sticky top-0 z-50 -mx-4 sm:-mx-6">
+      <div className="bg-white/95 backdrop-blur-sm px-4 py-3 shadow-sm border-b border-border/50">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              onClick={handleToggleSidebar}
+              className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors shrink-0"
+              aria-label="Open menu"
+            >
+              <Menu className="h-5 w-5 text-gray-700" />
+            </button>
+            <div className="min-w-0">
+              <h1 className="text-base font-bold text-gray-900 leading-tight">ChainTrack</h1>
+              {businessName && (
+                <p className="text-xs text-gray-500 truncate">{businessName}</p>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 shrink-0">
             <button
               onClick={() => router.push("/profile")}
-              className="p-2 rounded-full hover:bg-gray-100"
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              aria-label="Profile"
             >
-              <User className="h-5 w-5 text-gray-600" />
+              <User className="h-4 w-4 text-gray-600" />
             </button>
             <button
               onClick={handleSignOut}
-              className="p-2 rounded-full hover:bg-gray-100"
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              aria-label="Sign out"
             >
-              <LogOut className="h-5 w-5 text-gray-600" />
+              <LogOut className="h-4 w-4 text-gray-600" />
             </button>
           </div>
         </div>

@@ -58,6 +58,8 @@ export async function POST(request: Request) {
           businessId: business.id,
           name: labourer.name,
           phone: labourer.phone || null,
+          rateOt: labourer.rateOt || null,
+          rateMedium: labourer.rateMedium || null,
         }
       })
 

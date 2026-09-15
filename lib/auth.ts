@@ -63,6 +63,21 @@ export const { handlers, auth } = NextAuth({
     maxAge: 365 * 24 * 60 * 60, // 1 year — effectively "stay logged in until logout"
     updateAge: 24 * 60 * 60,    // refresh the token once per day on activity
   },
+  // Explicitly set cookie maxAge so the cookie is PERSISTENT (survives browser close).
+  // Without this, NextAuth issues a session cookie with no expiry, which browsers
+  // delete when the window is closed — causing the "logout on close" symptom.
+  cookies: {
+    sessionToken: {
+      name: "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 365 * 24 * 60 * 60, // must match session.maxAge
+      },
+    },
+  },
   pages: {
     signIn: "/login",
   },

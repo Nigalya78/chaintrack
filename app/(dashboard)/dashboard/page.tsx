@@ -3,7 +3,11 @@
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { Card } from "@/components/ui/Card"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, PieChart, Pie, Cell, Legend,
+} from "recharts"
+import { TrendingUp, TrendingDown, Users, Store, ShoppingBag, Package } from "lucide-react"
 
 type DashboardStats = {
   businessName: string
@@ -19,7 +23,7 @@ type DashboardStats = {
   chainDistribution: { name: string; value: number }[]
 }
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"]
+const CHART_COLORS = ["#EAB308", "#3B82F6"]
 
 export default function DashboardPage() {
   const { data: session } = useSession()
@@ -27,12 +31,9 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (session?.user) {
-      loadStats()
-    }
+    if (session?.user) loadStats()
   }, [session])
 
-  // Update business name in localStorage when stats load
   useEffect(() => {
     if (stats?.businessName) {
       localStorage.setItem("businessName", stats.businessName)
@@ -42,10 +43,7 @@ export default function DashboardPage() {
   async function loadStats() {
     try {
       const response = await fetch("/api/dashboard")
-      if (response.ok) {
-        const data = await response.json()
-        setStats(data)
-      }
+      if (response.ok) setStats(await response.json())
     } catch (error) {
       console.error("Failed to load dashboard stats:", error)
     } finally {
@@ -54,112 +52,179 @@ export default function DashboardPage() {
   }
 
   if (loading) {
-    return <div className="p-8">Loading...</div>
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="h-8 bg-muted rounded w-64" />
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-28 bg-muted rounded-xl" />
+          ))}
+        </div>
+      </div>
+    )
   }
 
   if (!stats) {
-    return <div className="p-8">Failed to load dashboard data</div>
+    return <div className="p-8 text-muted-foreground">Failed to load dashboard data.</div>
   }
 
   return (
     <div className="space-y-6">
       {!stats.setupCompleted && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <div className="text-yellow-600">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="8" x2="12" y2="12"></line>
-                <line x1="12" y1="16" x2="12.01" y2="16"></line>
-              </svg>
-            </div>
-            <div>
-              <h3 className="font-semibold text-yellow-800">Business Setup Pending</h3>
-              <p className="text-sm text-yellow-700">Complete your business setup to start tracking inventory and transactions. <a href="/setup" onClick={(e) => { e.preventDefault(); localStorage.setItem("fromRegistration", "false"); localStorage.setItem("previousPage", "/dashboard"); window.location.href = "/setup"; }} className="underline font-medium">Complete Setup</a></p>
-            </div>
+        <div className="flex gap-3 items-start bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+          <div className="mt-0.5 shrink-0 text-yellow-500">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+          </div>
+          <div>
+            <p className="font-semibold text-yellow-800 text-sm">Business Setup Pending</p>
+            <p className="text-sm text-yellow-700 mt-0.5">
+              Complete your setup to start tracking.{" "}
+              <a
+                href="/setup"
+                onClick={(e) => {
+                  e.preventDefault()
+                  localStorage.setItem("fromRegistration", "false")
+                  localStorage.setItem("previousPage", "/dashboard")
+                  window.location.href = "/setup"
+                }}
+                className="underline font-medium"
+              >
+                Complete Setup →
+              </a>
+            </p>
           </div>
         </div>
       )}
 
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Welcome! {stats.businessName}</h1>
-        <p className="text-muted-foreground text-sm sm:text-base">Overview of your business operations</p>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{stats.businessName}</h1>
+        <p className="text-muted-foreground text-sm mt-1">Business overview</p>
       </div>
 
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <Card title="Total Purchases">
-          <div className="text-2xl sm:text-3xl font-bold">Rs. {stats.totalPurchases.toLocaleString()}</div>
-          <p className="text-sm text-muted-foreground">Total raw material purchases</p>
-        </Card>
-        <Card title="Total Sales">
-          <div className="text-2xl sm:text-3xl font-bold">Rs. {stats.totalSales.toLocaleString()}</div>
-          <p className="text-sm text-muted-foreground">Total chain sales</p>
-        </Card>
-        <Card title="Labourers">
-          <div className="text-2xl sm:text-3xl font-bold">{stats.totalLabourers}</div>
-          <p className="text-sm text-muted-foreground">Active labour workforce</p>
-        </Card>
-        <Card title="Suppliers">
-          <div className="text-2xl sm:text-3xl font-bold">{stats.totalSuppliers}</div>
-          <p className="text-sm text-muted-foreground">Raw material suppliers</p>
-        </Card>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card title="Current Stock">
-          <div className="space-y-4">
+      {/* KPI Cards */}
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        <Card className="col-span-1">
+          <div className="flex items-start justify-between gap-2">
             <div>
-              <div className="text-sm text-muted-foreground">OT Chains</div>
-              <div className="text-2xl font-bold">{stats.stockOT} chains</div>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Total Purchases</p>
+              <p className="text-xl sm:text-2xl font-bold mt-1">₹{stats.totalPurchases.toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground mt-1">Raw material cost</p>
             </div>
-            <div>
-              <div className="text-sm text-muted-foreground">Medium Chains</div>
-              <div className="text-2xl font-bold">{stats.stockMedium} chains</div>
+            <div className="shrink-0 p-2 bg-orange-50 rounded-lg">
+              <ShoppingBag className="h-4 w-4 text-orange-500" />
             </div>
           </div>
         </Card>
-        <Card title="Business Entities">
-          <div className="space-y-4">
+
+        <Card className="col-span-1">
+          <div className="flex items-start justify-between gap-2">
             <div>
-              <div className="text-sm text-muted-foreground">Shops</div>
-              <div className="text-2xl font-bold">{stats.totalShops}</div>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Total Sales</p>
+              <p className="text-xl sm:text-2xl font-bold mt-1">₹{stats.totalSales.toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground mt-1">Chain sales revenue</p>
+            </div>
+            <div className="shrink-0 p-2 bg-green-50 rounded-lg">
+              <TrendingUp className="h-4 w-4 text-green-500" />
+            </div>
+          </div>
+        </Card>
+
+        <Card className="col-span-1">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Labourers</p>
+              <p className="text-xl sm:text-2xl font-bold mt-1">{stats.totalLabourers}</p>
+              <p className="text-xs text-muted-foreground mt-1">Active workforce</p>
+            </div>
+            <div className="shrink-0 p-2 bg-blue-50 rounded-lg">
+              <Users className="h-4 w-4 text-blue-500" />
+            </div>
+          </div>
+        </Card>
+
+        <Card className="col-span-1">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Shops</p>
+              <p className="text-xl sm:text-2xl font-bold mt-1">{stats.totalShops}</p>
+              <p className="text-xs text-muted-foreground mt-1">{stats.totalSuppliers} suppliers</p>
+            </div>
+            <div className="shrink-0 p-2 bg-purple-50 rounded-lg">
+              <Store className="h-4 w-4 text-purple-500" />
             </div>
           </div>
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card title="Monthly Sales">
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={stats.monthlySales}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="amount" fill="#8884d8" />
-            </BarChart>
-          </ResponsiveContainer>
+      {/* Stock summary */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Card title="OT Chain Stock">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-yellow-50 rounded-lg shrink-0">
+              <Package className="h-5 w-5 text-yellow-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{stats.stockOT.toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground">finished chains available</p>
+            </div>
+          </div>
         </Card>
-        <Card title="Chain Distribution">
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={stats.chainDistribution}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={(entry) => `${entry.name}: ${entry.value}`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {stats.chainDistribution.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+        <Card title="Medium Chain Stock">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-blue-50 rounded-lg shrink-0">
+              <Package className="h-5 w-5 text-blue-500" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{stats.stockMedium.toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground">finished chains available</p>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Charts */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card title="Monthly Sales (₹)">
+          <div className="h-56 sm:h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={stats.monthlySales} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 11 }} width={50} />
+                <Tooltip
+                  formatter={(v: number) => [`₹${v.toLocaleString()}`, "Sales"]}
+                  contentStyle={{ fontSize: 12, borderRadius: 8 }}
+                />
+                <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+
+        <Card title="Chain Stock Distribution">
+          <div className="h-56 sm:h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={stats.chainDistribution}
+                  cx="50%"
+                  cy="45%"
+                  outerRadius="60%"
+                  dataKey="value"
+                  label={({ name, value }) => `${name}: ${value}`}
+                  labelLine={false}
+                >
+                  {stats.chainDistribution.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend iconSize={10} wrapperStyle={{ fontSize: 12 }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </Card>
       </div>
     </div>

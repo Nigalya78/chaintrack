@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { Card } from "@/components/ui/Card"
-import { DataTable } from "@/components/ui/DataTable"
 import { Button } from "@/components/ui/Button"
+import { NumericInput } from "@/components/ui/NumericInput"
 
 type InventoryItem = {
   type: string
@@ -17,6 +17,32 @@ type OpeningBalance = {
   kanniMediumKg: number
   otChains: number
   mediumChains: number
+}
+
+const CHAINS_PER_KG: Record<string, number> = { OT: 24, MEDIUM: 40 }
+
+// Human-readable labels and category groupings
+const INVENTORY_META: Record<string, { label: string; category: string; chainType?: string }> = {
+  KANNI_OT:            { label: "Kanni — OT",            category: "Raw Material (Kanni)", chainType: "OT" },
+  KANNI_MEDIUM:        { label: "Kanni — Medium",        category: "Raw Material (Kanni)", chainType: "MEDIUM" },
+  CHAIN_OT:            { label: "Chains — OT",           category: "Unfinished Chains" },
+  CHAIN_MEDIUM:        { label: "Chains — Medium",       category: "Unfinished Chains" },
+  FINISHED_CHAIN_OT:   { label: "Finished Chains — OT",  category: "Finished Chains" },
+  FINISHED_CHAIN_MEDIUM: { label: "Finished Chains — Medium", category: "Finished Chains" },
+}
+
+function formatKanniRow(item: InventoryItem) {
+  const meta = INVENTORY_META[item.type]
+  const chainType = meta?.chainType
+  const kg = Number(item.quantity)
+  if (!chainType) return { display: `${kg.toFixed(3)} kg`, secondary: null }
+
+  const cPerKg = CHAINS_PER_KG[chainType]
+  const chains = Math.floor(kg * cPerKg)
+  return {
+    display: `${kg.toFixed(3)} kg`,
+    secondary: `≈ ${chains.toLocaleString()} chains  (${cPerKg} chains/kg)`,
+  }
 }
 
 export default function InventoryPage() {
@@ -86,11 +112,9 @@ export default function InventoryPage() {
           mediumChains: parseInt(editForm.mediumChains) || 0,
         }),
       })
-
       if (response.ok) {
         setShowEditForm(false)
-        loadOpeningBalance()
-        loadInventory()
+        await Promise.all([loadOpeningBalance(), loadInventory()])
       }
     } catch (error) {
       console.error("Failed to update opening balance:", error)
@@ -104,12 +128,18 @@ export default function InventoryPage() {
     return <div className="p-8">Loading...</div>
   }
 
+  // Group inventory rows by category
+  const typeOrder = ["KANNI_OT", "KANNI_MEDIUM", "CHAIN_OT", "CHAIN_MEDIUM", "FINISHED_CHAIN_OT", "FINISHED_CHAIN_MEDIUM"]
+  const sorted = typeOrder
+    .map((t) => inventory.find((i) => i.type === t))
+    .filter(Boolean) as InventoryItem[]
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Inventory</h1>
-          <p className="text-muted-foreground text-sm sm:text-base">View and manage your current stock levels</p>
+          <p className="text-muted-foreground text-sm">View and manage your current stock levels</p>
         </div>
         <Button onClick={() => setShowEditForm(!showEditForm)}>
           {showEditForm ? "Cancel" : "Edit Opening Balance"}
@@ -122,40 +152,34 @@ export default function InventoryPage() {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Kanni OT (kg)</label>
-                <input
-                  type="number"
+                <NumericInput
                   step="0.001"
                   value={editForm.kanniOtKg}
-                  onChange={(e) => setEditForm({ ...editForm, kanniOtKg: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md"
+                  onChange={(v) => setEditForm({ ...editForm, kanniOtKg: v })}
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Kanni Medium (kg)</label>
-                <input
-                  type="number"
+                <NumericInput
                   step="0.001"
                   value={editForm.kanniMediumKg}
-                  onChange={(e) => setEditForm({ ...editForm, kanniMediumKg: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md"
+                  onChange={(v) => setEditForm({ ...editForm, kanniMediumKg: v })}
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">OT Chains (pieces)</label>
-                <input
-                  type="number"
+                <NumericInput
+                  allowDecimal={false}
                   value={editForm.otChains}
-                  onChange={(e) => setEditForm({ ...editForm, otChains: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md"
+                  onChange={(v) => setEditForm({ ...editForm, otChains: v })}
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Medium Chains (pieces)</label>
-                <input
-                  type="number"
+                <NumericInput
+                  allowDecimal={false}
                   value={editForm.mediumChains}
-                  onChange={(e) => setEditForm({ ...editForm, mediumChains: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md"
+                  onChange={(v) => setEditForm({ ...editForm, mediumChains: v })}
                 />
               </div>
             </div>
@@ -171,16 +195,47 @@ export default function InventoryPage() {
         </Card>
       )}
 
-      <Card title="Current Stock">
-        <DataTable
-          columns={["Type", "Quantity", "Unit"]}
-          rows={inventory.map((item) => [
-            item.type.replace(/_/g, " "),
-            item.quantity.toString(),
-            item.unit,
-          ])}
-        />
-      </Card>
+      {/* Inventory cards grouped by category */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {sorted.map((item) => {
+          const meta = INVENTORY_META[item.type] ?? { label: item.type, category: "Other" }
+          const isKanni = item.type.startsWith("KANNI_")
+          const qty = Number(item.quantity)
+          const kanniInfo = isKanni ? formatKanniRow(item) : null
+
+          return (
+            <div
+              key={item.type}
+              className="rounded-xl border border-border/50 bg-card shadow-sm p-4 flex flex-col gap-1"
+            >
+              <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                {meta.category}
+              </div>
+              <div className="text-sm font-semibold text-foreground mt-1">{meta.label}</div>
+              {isKanni && kanniInfo ? (
+                <>
+                  <div className="text-2xl font-bold text-primary mt-1">
+                    {kanniInfo.display}
+                  </div>
+                  <div className="text-xs text-muted-foreground">{kanniInfo.secondary}</div>
+                </>
+              ) : (
+                <div className="text-2xl font-bold text-primary mt-1">
+                  {qty.toLocaleString()}
+                  <span className="text-sm font-normal text-muted-foreground ml-1">pieces</span>
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Summary row */}
+      {sorted.length === 0 && (
+        <Card title="Current Stock">
+          <p className="text-sm text-muted-foreground py-4 text-center">No inventory records found. Complete setup to initialize stock.</p>
+        </Card>
+      )}
     </div>
   )
 }

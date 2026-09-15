@@ -15,7 +15,7 @@ import {
   LogOut,
   User
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signOut } from "next-auth/react";
 
 const navigation = [
@@ -35,6 +35,13 @@ const navigation = [
 export function Sidebar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+
+  // Listen for toggle events from MobileTopBar
+  useEffect(() => {
+    const handler = () => setIsOpen((prev) => !prev);
+    window.addEventListener("toggle-sidebar", handler);
+    return () => window.removeEventListener("toggle-sidebar", handler);
+  }, []);
 
   const handleSignOut = async () => {
     try {

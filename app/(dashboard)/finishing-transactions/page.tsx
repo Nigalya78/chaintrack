@@ -5,11 +5,12 @@ import { useSession } from "next-auth/react"
 import { Card } from "@/components/ui/Card"
 import { DataTable } from "@/components/ui/DataTable"
 import { Button } from "@/components/ui/Button"
+import { Input } from "@/components/ui/Input"
+import { NumericInput } from "@/components/ui/NumericInput"
 
-type Vendor = {
-  id: string
-  name: string
-}
+const SELECT_CLS = "w-full px-4 py-2.5 rounded-lg border border-border/50 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring hover:border-border transition-all duration-200"
+
+type Vendor = { id: string; name: string }
 
 type FinishingTransaction = {
   id: string
@@ -38,9 +39,7 @@ export default function FinishingTransactionsPage() {
   })
 
   useEffect(() => {
-    if (session?.user) {
-      loadData()
-    }
+    if (session?.user) loadData()
   }, [session])
 
   async function loadData() {
@@ -65,21 +64,19 @@ export default function FinishingTransactionsPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...formData,
+          vendorId: formData.vendorId,
+          chainType: formData.chainType,
           chainsGiven: parseInt(formData.chainsGiven),
           finishedChainsReceived: parseInt(formData.finishedChainsReceived),
+          transactionDate: formData.transactionDate,
+          notes: formData.notes || null,
         }),
       })
-
       if (response.ok) {
         setShowForm(false)
         setFormData({
-          vendorId: "",
-          chainType: "OT",
-          chainsGiven: "",
-          finishedChainsReceived: "",
-          transactionDate: new Date().toISOString().slice(0, 10),
-          notes: "",
+          vendorId: "", chainType: "OT", chainsGiven: "", finishedChainsReceived: "",
+          transactionDate: new Date().toISOString().slice(0, 10), notes: "",
         })
         loadData()
       }
@@ -88,16 +85,14 @@ export default function FinishingTransactionsPage() {
     }
   }
 
-  if (loading) {
-    return <div className="p-8">Loading...</div>
-  }
+  if (loading) return <div className="p-8 text-muted-foreground text-sm">Loading...</div>
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Finishing Transactions</h1>
-          <p className="text-muted-foreground">Record chains sent to and received from finishing vendors</p>
+          <p className="text-muted-foreground text-sm">Record chains sent to and received from finishing vendors</p>
         </div>
         <Button onClick={() => setShowForm(!showForm)}>
           {showForm ? "Cancel" : "Add Transaction"}
@@ -110,69 +105,49 @@ export default function FinishingTransactionsPage() {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Vendor</label>
-                <select
-                  required
-                  value={formData.vendorId}
+                <select required value={formData.vendorId}
                   onChange={(e) => setFormData({ ...formData, vendorId: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md"
-                >
+                  className={SELECT_CLS}>
                   <option value="">Select Vendor</option>
-                  {vendors.map((v) => (
-                    <option key={v.id} value={v.id}>
-                      {v.name}
-                    </option>
-                  ))}
+                  {vendors.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
                 </select>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Chain Type</label>
-                <select
-                  value={formData.chainType}
+                <select value={formData.chainType}
                   onChange={(e) => setFormData({ ...formData, chainType: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md"
-                >
+                  className={SELECT_CLS}>
                   <option value="OT">OT</option>
                   <option value="MEDIUM">Medium</option>
                 </select>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Chains Given</label>
-                <input
-                  type="number"
-                  required
+                <NumericInput allowDecimal={false} required
                   value={formData.chainsGiven}
-                  onChange={(e) => setFormData({ ...formData, chainsGiven: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md"
+                  onChange={(v) => setFormData({ ...formData, chainsGiven: v })}
+                  placeholder="Chains sent to vendor"
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Finished Chains Received</label>
-                <input
-                  type="number"
-                  required
+                <NumericInput allowDecimal={false} required
                   value={formData.finishedChainsReceived}
-                  onChange={(e) => setFormData({ ...formData, finishedChainsReceived: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md"
+                  onChange={(v) => setFormData({ ...formData, finishedChainsReceived: v })}
+                  placeholder="Finished chains back"
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Date</label>
-                <input
-                  type="date"
-                  required
-                  value={formData.transactionDate}
+                <input type="date" required value={formData.transactionDate}
                   onChange={(e) => setFormData({ ...formData, transactionDate: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md"
-                />
+                  className={SELECT_CLS} />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Notes</label>
-                <input
-                  type="text"
-                  value={formData.notes}
+                <Input type="text" value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md"
-                />
+                  placeholder="Optional notes" />
               </div>
             </div>
             <Button type="submit" variant="gold">Save Transaction</Button>

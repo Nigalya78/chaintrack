@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Dialog } from "@/components/ui/Dialog"
 import { Pencil, Trash2 } from "lucide-react"
+import { NumericInput } from "@/components/ui/NumericInput"
 
 type Vendor = {
   id: string
@@ -216,21 +217,19 @@ export default function VendorsPage() {
                 <>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Rate per OT Chain (₹)</label>
-                    <Input
-                      type="number"
+                    <NumericInput
                       step="0.01"
                       value={formData.rateOt}
-                      onChange={(e) => setFormData({ ...formData, rateOt: e.target.value })}
+                      onChange={(v) => setFormData({ ...formData, rateOt: v })}
                       placeholder="Enter rate"
                     />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Rate per Medium Chain (₹)</label>
-                    <Input
-                      type="number"
+                    <NumericInput
                       step="0.01"
                       value={formData.rateMedium}
-                      onChange={(e) => setFormData({ ...formData, rateMedium: e.target.value })}
+                      onChange={(v) => setFormData({ ...formData, rateMedium: v })}
                       placeholder="Enter rate"
                     />
                   </div>
@@ -312,21 +311,19 @@ export default function VendorsPage() {
               <>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Rate per OT Chain (₹)</label>
-                  <Input
-                    type="number"
+                  <NumericInput
                     step="0.01"
                     value={editForm.rateOt}
-                    onChange={(e) => setEditForm({ ...editForm, rateOt: e.target.value })}
+                    onChange={(v) => setEditForm({ ...editForm, rateOt: v })}
                     placeholder="Enter rate"
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Rate per Medium Chain (₹)</label>
-                  <Input
-                    type="number"
+                  <NumericInput
                     step="0.01"
                     value={editForm.rateMedium}
-                    onChange={(e) => setEditForm({ ...editForm, rateMedium: e.target.value })}
+                    onChange={(v) => setEditForm({ ...editForm, rateMedium: v })}
                     placeholder="Enter rate"
                   />
                 </div>
