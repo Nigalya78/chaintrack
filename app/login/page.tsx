@@ -49,18 +49,10 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-[hsl(var(--background))] p-4">
       <div className="w-full max-w-[400px] space-y-8">
 
-        {/* Logo + brand */}
-        <div className="flex flex-col items-center gap-3">
-          <div className="relative w-24 h-24">
+        {/* Logo — no text, logo image contains the name already */}
+        <div className="flex justify-center">
+          <div className="relative w-40 h-32">
             <Image src="/logo.png" alt="ChainTrack" fill className="object-contain" priority />
-          </div>
-          <div className="text-center">
-            <h1 className="text-2xl font-bold tracking-tight text-[hsl(214,32%,17%)]">
-              Chain<span className="text-[#C9922A]">Track</span>
-            </h1>
-            <p className="text-[11px] uppercase tracking-widest text-[hsl(214,18%,50%)] mt-0.5">
-              Jewellery Inventory &amp; Production Management
-            </p>
           </div>
         </div>
 
