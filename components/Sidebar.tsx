@@ -79,18 +79,17 @@ export function Sidebar() {
           isOpen ? "translate-x-0 shadow-[var(--shadow-xl)]" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        {/* ── Logo area — full-width dark-logo lockup ── */}
-        <div className="flex items-center justify-center h-[70px] px-4 border-b border-[hsl(214,32%,22%)] shrink-0">
-          <Link href="/dashboard" className="flex items-center justify-center w-full">
-            <div className="relative w-52 h-14">
-              <Image
-                src="/dark-logo.png"
-                alt="ChainTrack"
-                fill
-                className="object-contain object-center"
-                priority
-              />
-            </div>
+        {/* ── Logo area ── */}
+        <div className="flex items-center justify-center h-[70px] border-b border-[hsl(214,32%,22%)] shrink-0">
+          <Link href="/dashboard">
+            <Image
+              src="/dark-logo.png"
+              alt="ChainTrack"
+              width={200}
+              height={52}
+              className="object-contain"
+              priority
+            />
           </Link>
         </div>
 

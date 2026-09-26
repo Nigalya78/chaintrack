@@ -54,10 +54,8 @@ export function MobileTopBar() {
             <Menu className="h-5 w-5" />
           </button>
 
-          {/* dark-logo — wide horizontal lockup on navy */}
-          <div className="relative w-36 h-10 shrink-0">
-            <Image src="/dark-logo.png" alt="ChainTrack" fill className="object-contain object-left" />
-          </div>
+          {/* dark-logo */}
+          <Image src="/dark-logo.png" alt="ChainTrack" width={140} height={36} className="object-contain shrink-0" />
           {businessName && (
             <span className="text-[10px] text-[hsl(214,15%,50%)] truncate leading-none hidden sm:block border-l border-[hsl(214,32%,26%)] pl-2.5 ml-0.5">{businessName}</span>
           )}

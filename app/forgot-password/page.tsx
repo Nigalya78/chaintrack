@@ -42,11 +42,9 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-[hsl(var(--background))] p-4">
       <div className="w-full max-w-[400px] space-y-8">
 
-        {/* Logo — no text */}
+        {/* Logo */}
         <div className="flex justify-center">
-          <div className="relative w-40 h-32">
-            <Image src="/logo.png" alt="ChainTrack" fill className="object-contain" priority />
-          </div>
+          <Image src="/logo.png" alt="ChainTrack" width={200} height={160} className="object-contain" priority />
         </div>
 
         {/* Card */}

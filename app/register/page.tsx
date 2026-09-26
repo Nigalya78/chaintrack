@@ -58,11 +58,9 @@ export default function RegisterPage() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-[hsl(var(--background))] p-4 py-10">
       <div className="w-full max-w-[480px] space-y-7">
 
-        {/* Logo — no text, logo image contains the name already */}
+        {/* Logo */}
         <div className="flex justify-center">
-          <div className="relative w-40 h-32">
-            <Image src="/logo.png" alt="ChainTrack" fill className="object-contain" priority />
-          </div>
+          <Image src="/logo.png" alt="ChainTrack" width={200} height={160} className="object-contain" priority />
         </div>
 
         {/* Card */}
