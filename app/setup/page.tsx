@@ -2,668 +2,395 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useSession } from "next-auth/react"
-import { Card } from "@/components/ui/Card"
 import { Button } from "@/components/ui/Button"
-import { DataTable } from "@/components/ui/DataTable"
 import { Input } from "@/components/ui/Input"
 import { NumericInput } from "@/components/ui/NumericInput"
+import { DataTable } from "@/components/ui/DataTable"
+import { Check, ChevronRight, ChevronLeft, Trash2, Plus } from "lucide-react"
 
-type Labourer = {
-  name: string
-  phone: string
-  otChains: number
-  mediumChains: number
-  rateOt: number
-  rateMedium: number
-}
-
-type Vendor = {
-  name: string
-  phone: string
-  area: string
-  otChains: number
-  mediumChains: number
-  rateOt: number
-  rateMedium: number
-}
-
+/* ── Types ───────────────────────────────────────────────── */
+type Labourer = { name: string; phone: string; otChains: number; mediumChains: number; rateOt: number; rateMedium: number }
+type Vendor   = { name: string; phone: string; area: string; otChains: number; mediumChains: number; rateOt: number; rateMedium: number }
 type SetupData = {
-  businessDetails: {
-    logo?: string
-    address?: string
-  }
-  openingInventory: {
-    kanniOtKg: number
-    kanniMediumKg: number
-    otChains: number
-    mediumChains: number
-    finishingOtChains: number
-    finishingMediumChains: number
-  }
+  businessDetails: { logo?: string; address?: string }
+  openingInventory: { kanniOtKg: number; kanniMediumKg: number; otChains: number; mediumChains: number; finishingOtChains: number; finishingMediumChains: number }
   labourers: Labourer[]
   vendors: Vendor[]
 }
 
+const STEP_LABELS = ["Business", "Inventory", "Labourers", "Vendors", "Review"]
+const emptyLabourer: Labourer = { name: "", phone: "", otChains: 0, mediumChains: 0, rateOt: 0, rateMedium: 0 }
+const emptyVendor: Vendor     = { name: "", phone: "", area: "", otChains: 0, mediumChains: 0, rateOt: 0, rateMedium: 0 }
+
+/* ── Shared input class ──────────────────────────────────── */
+const INP = "w-full px-3.5 py-2.5 rounded-[var(--radius)] border border-border bg-[hsl(var(--surface))] text-sm text-foreground placeholder:text-[hsl(var(--foreground-muted))] outline-none transition-all duration-150 hover:border-[hsl(var(--border-strong))] focus:border-[hsl(var(--primary))] focus:ring-2 focus:ring-[hsl(var(--ring)/0.2)]"
+
 export default function SetupPage() {
   const router = useRouter()
-  const { data: session } = useSession()
   const [step, setStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
-  
   const [data, setData] = useState<SetupData>({
     businessDetails: {},
-    openingInventory: {
-      kanniOtKg: 0,
-      kanniMediumKg: 0,
-      otChains: 0,
-      mediumChains: 0,
-      finishingOtChains: 0,
-      finishingMediumChains: 0,
-    },
+    openingInventory: { kanniOtKg: 0, kanniMediumKg: 0, otChains: 0, mediumChains: 0, finishingOtChains: 0, finishingMediumChains: 0 },
     labourers: [],
     vendors: [],
   })
+  const [newLabourer, setNewLabourer] = useState<Labourer>(emptyLabourer)
+  const [newVendor, setNewVendor]     = useState<Vendor>(emptyVendor)
 
-  const [newLabourer, setNewLabourer] = useState<Labourer>({
-    name: "",
-    phone: "",
-    otChains: 0,
-    mediumChains: 0,
-    rateOt: 0,
-    rateMedium: 0,
-  })
-
-  const [newVendor, setNewVendor] = useState<Vendor>({
-    name: "",
-    phone: "",
-    area: "",
-    otChains: 0,
-    mediumChains: 0,
-    rateOt: 0,
-    rateMedium: 0,
-  })
-
-  const addLabourer = () => {
-    if (newLabourer.name) {
-      setData((prev) => ({
-        ...prev,
-        labourers: [...prev.labourers, { ...newLabourer }],
-      }))
-      setNewLabourer({ name: "", phone: "", otChains: 0, mediumChains: 0, rateOt: 0, rateMedium: 0 })
-    }
+  /* ── Helpers ─────────────────────────────────────────────── */
+  function addLabourer() {
+    if (!newLabourer.name.trim()) return
+    setData(p => ({ ...p, labourers: [...p.labourers, { ...newLabourer }] }))
+    setNewLabourer(emptyLabourer)
   }
-
-  const removeLabourer = (index: number) => {
-    setData((prev) => ({
-      ...prev,
-      labourers: prev.labourers.filter((_, i) => i !== index),
-    }))
+  function removeLabourer(i: number) { setData(p => ({ ...p, labourers: p.labourers.filter((_, idx) => idx !== i) })) }
+  function addVendor() {
+    if (!newVendor.name.trim()) return
+    setData(p => ({ ...p, vendors: [...p.vendors, { ...newVendor }] }))
+    setNewVendor(emptyVendor)
   }
+  function removeVendor(i: number) { setData(p => ({ ...p, vendors: p.vendors.filter((_, idx) => idx !== i) })) }
 
-  const addVendor = () => {
-    if (newVendor.name) {
-      setData((prev) => ({
-        ...prev,
-        vendors: [...prev.vendors, { ...newVendor }],
-      }))
-      setNewVendor({ name: "", phone: "", area: "", otChains: 0, mediumChains: 0, rateOt: 0, rateMedium: 0 })
-    }
-  }
-
-  const removeVendor = (index: number) => {
-    setData((prev) => ({
-      ...prev,
-      vendors: prev.vendors.filter((_, i) => i !== index),
-    }))
-  }
-
-  const handleSubmit = async () => {
+  async function handleSubmit() {
     setIsLoading(true)
     try {
       const userId = localStorage.getItem("setupUserId")
       const businessId = localStorage.getItem("setupBusinessId")
       const fromRegistration = localStorage.getItem("fromRegistration") === "true"
       const previousPage = localStorage.getItem("previousPage")
-
-      if (!userId || !businessId) {
-        router.push("/login")
-        return
-      }
-
-      const response = await fetch("/api/setup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      if (!userId || !businessId) { router.push("/login"); return }
+      const res = await fetch("/api/setup", {
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...data, userId, businessId, complete: true }),
       })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Setup failed")
-      }
-
-      localStorage.removeItem("setupUserId")
-      localStorage.removeItem("setupBusinessId")
-      localStorage.removeItem("fromRegistration")
-      localStorage.removeItem("previousPage")
-      
-      // If coming from registration, redirect to login
-      // Otherwise, go to the previous page or dashboard
-      if (fromRegistration) {
-        router.push("/login")
-      } else if (previousPage) {
-        router.push(previousPage)
-      } else {
-        router.push("/dashboard")
-      }
-    } catch (error) {
-      console.error(error)
-      alert(error instanceof Error ? error.message : "Setup failed. Please try again.")
-    } finally {
-      setIsLoading(false)
-    }
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Setup failed") }
+      localStorage.removeItem("setupUserId"); localStorage.removeItem("setupBusinessId")
+      localStorage.removeItem("fromRegistration"); localStorage.removeItem("previousPage")
+      router.push(fromRegistration ? "/login" : previousPage || "/dashboard")
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Setup failed. Please try again.")
+    } finally { setIsLoading(false) }
   }
 
-  const handleSkip = async () => {
+  async function handleSkip() {
     setIsLoading(true)
     try {
       const userId = localStorage.getItem("setupUserId")
       const businessId = localStorage.getItem("setupBusinessId")
       const fromRegistration = localStorage.getItem("fromRegistration") === "true"
       const previousPage = localStorage.getItem("previousPage")
-
-
-      // If coming from registration, we need userId/businessId
-      // If already logged in (from dashboard/profile), just skip without API call
       if (fromRegistration) {
-        if (!userId || !businessId) {
-          router.push("/login")
-          return
-        }
-
-        const response = await fetch("/api/setup", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        if (!userId || !businessId) { router.push("/login"); return }
+        const res = await fetch("/api/setup", {
+          method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ userId, businessId, complete: false }),
         })
-
-        if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.error || "Skip failed")
-        }
-
-        localStorage.removeItem("setupUserId")
-        localStorage.removeItem("setupBusinessId")
-        localStorage.removeItem("fromRegistration")
-        localStorage.removeItem("previousPage")
-        
-        router.push("/login")
-      } else {
-        // Already logged in user - just go back to previous page or dashboard
-        localStorage.removeItem("setupUserId")
-        localStorage.removeItem("setupBusinessId")
-        localStorage.removeItem("fromRegistration")
-        localStorage.removeItem("previousPage")
-        
-        if (previousPage) {
-          router.push(previousPage)
-        } else {
-          router.push("/dashboard")
-        }
+        if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Skip failed") }
       }
-    } catch (error) {
-      console.error(error)
-      alert(error instanceof Error ? error.message : "Skip failed. Please try again.")
-    } finally {
-      setIsLoading(false)
-    }
+      localStorage.removeItem("setupUserId"); localStorage.removeItem("setupBusinessId")
+      localStorage.removeItem("fromRegistration"); localStorage.removeItem("previousPage")
+      router.push(fromRegistration ? "/login" : previousPage || "/dashboard")
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Skip failed.")
+    } finally { setIsLoading(false) }
   }
 
-  const nextStep = () => setStep((prev) => Math.min(prev + 1, 5))
-  const prevStep = () => setStep((prev) => Math.max(prev - 1, 1))
-
+  /* ── Render ───────────────────────────────────────────────── */
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold">Business Setup</h1>
-          <p className="text-muted-foreground text-sm sm:text-base">Complete your business setup in 5 steps</p>
+    <div className="min-h-screen bg-[hsl(var(--background))] p-4 sm:p-6 lg:p-8">
+      <div className="max-w-2xl mx-auto space-y-8">
+
+        {/* ── Header ── */}
+        <div className="text-center space-y-1 pt-2">
+          <div className="inline-flex items-center justify-center w-10 h-10 rounded-[var(--radius)] bg-gradient-to-b from-[hsl(43,95%,56%)] to-[hsl(43,95%,44%)] shadow-[var(--shadow-sm)] mb-2">
+            <span className="text-lg font-black text-black">C</span>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight">Business Setup</h1>
+          <p className="text-sm text-[hsl(var(--foreground-muted))]">Get your account ready in 5 quick steps</p>
         </div>
 
-        {/* Progress Steps */}
-        <div className="flex justify-between mb-8">
-          {[1, 2, 3, 4, 5].map((s) => (
-            <div
-              key={s}
-              className={`flex-1 h-2 rounded-full mx-1 ${
-                s <= step ? "bg-primary" : "bg-muted"
-              }`}
-            />
-          ))}
+        {/* ── Progress stepper ── */}
+        <div className="flex items-center gap-0">
+          {STEP_LABELS.map((label, idx) => {
+            const s = idx + 1
+            const done   = s < step
+            const active = s === step
+            return (
+              <div key={s} className="flex-1 flex flex-col items-center relative">
+                {/* connector line */}
+                {idx > 0 && (
+                  <div className={`absolute left-0 top-4 h-0.5 w-full -translate-y-0.5 ${s <= step ? "bg-[hsl(var(--primary))]" : "bg-border"}`} style={{ left: "-50%", width: "100%" }} />
+                )}
+                {/* circle */}
+                <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-200 ${
+                  done   ? "bg-[hsl(var(--primary))] text-black"  :
+                  active ? "bg-[hsl(var(--primary))] text-black ring-4 ring-[hsl(43,95%,50%/0.25)]" :
+                           "bg-[hsl(var(--muted))] text-[hsl(var(--foreground-muted))]"
+                }`}>
+                  {done ? <Check className="h-3.5 w-3.5" /> : s}
+                </div>
+                <span className={`mt-1.5 text-[10px] font-medium hidden sm:block ${active ? "text-foreground" : "text-[hsl(var(--foreground-muted))]"}`}>
+                  {label}
+                </span>
+              </div>
+            )
+          })}
         </div>
 
-        {/* Step 1: Business Details */}
-        {step === 1 && (
-          <Card title="Step 1: Business Details">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Business Logo (Optional)</label>
-                <input
-                  type="text"
-                  placeholder="Logo URL"
-                  value={data.businessDetails.logo || ""}
-                  onChange={(e) =>
-                    setData((prev) => ({
-                      ...prev,
-                      businessDetails: {
-                        ...prev.businessDetails,
-                        logo: e.target.value,
-                      },
-                    }))
-                  }
-                  className="w-full px-3 py-2 border rounded-md"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Address (Optional)</label>
-                <textarea
-                  placeholder="Business address"
-                  value={data.businessDetails.address || ""}
-                  onChange={(e) =>
-                    setData((prev) => ({
-                      ...prev,
-                      businessDetails: {
-                        ...prev.businessDetails,
-                        address: e.target.value,
-                      },
-                    }))
-                  }
-                  className="w-full px-3 py-2 border rounded-md"
-                  rows={3}
-                />
-              </div>
-            </div>
-          </Card>
-        )}
+        {/* ── Step panels ── */}
+        <div className="bg-[hsl(var(--surface))] rounded-[var(--radius-xl)] border border-border shadow-[var(--shadow-sm)] overflow-hidden">
 
-        {/* Step 2: Opening Inventory */}
-        {step === 2 && (
-          <Card title="Step 2: Opening Inventory">
-            <p className="text-sm text-muted-foreground mb-4">
-              Enter your current inventory levels
-            </p>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">OT Kanni (kg)</label>
-                  <NumericInput
-                    step="0.001"
-                    value={data.openingInventory.kanniOtKg}
-                    onChange={(v) =>
-                      setData((prev) => ({
-                        ...prev,
-                        openingInventory: {
-                          ...prev.openingInventory,
-                          kanniOtKg: parseFloat(v) || 0,
-                        },
-                      }))
-                    }
+          {/* Step header */}
+          <div className="px-6 py-4 border-b border-border/60 bg-[hsl(var(--muted)/0.3)]">
+            <h2 className="font-semibold text-[15px]">
+              Step {step}: {STEP_LABELS[step - 1]}
+            </h2>
+          </div>
+
+          <div className="px-6 py-6">
+
+            {/* ── Step 1: Business Details ── */}
+            {step === 1 && (
+              <div className="space-y-5">
+                <p className="text-sm text-[hsl(var(--foreground-muted))]">Optional details — you can update these later from Profile.</p>
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium">Logo URL <span className="text-[hsl(var(--foreground-muted))] font-normal">(optional)</span></label>
+                  <Input type="url" placeholder="https://example.com/logo.png"
+                    value={data.businessDetails.logo || ""}
+                    onChange={e => setData(p => ({ ...p, businessDetails: { ...p.businessDetails, logo: e.target.value } }))}
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Medium Kanni (kg)</label>
-                  <NumericInput
-                    step="0.001"
-                    value={data.openingInventory.kanniMediumKg}
-                    onChange={(v) =>
-                      setData((prev) => ({
-                        ...prev,
-                        openingInventory: {
-                          ...prev.openingInventory,
-                          kanniMediumKg: parseFloat(v) || 0,
-                        },
-                      }))
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">OT Chains</label>
-                  <NumericInput
-                    allowDecimal={false}
-                    value={data.openingInventory.otChains}
-                    onChange={(v) =>
-                      setData((prev) => ({
-                        ...prev,
-                        openingInventory: {
-                          ...prev.openingInventory,
-                          otChains: parseInt(v) || 0,
-                        },
-                      }))
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Medium Chains</label>
-                  <NumericInput
-                    allowDecimal={false}
-                    value={data.openingInventory.mediumChains}
-                    onChange={(v) =>
-                      setData((prev) => ({
-                        ...prev,
-                        openingInventory: {
-                          ...prev.openingInventory,
-                          mediumChains: parseInt(v) || 0,
-                        },
-                      }))
-                    }
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium">Address <span className="text-[hsl(var(--foreground-muted))] font-normal">(optional)</span></label>
+                  <textarea
+                    rows={3}
+                    placeholder="Business address"
+                    value={data.businessDetails.address || ""}
+                    onChange={e => setData(p => ({ ...p, businessDetails: { ...p.businessDetails, address: e.target.value } }))}
+                    className={INP + " resize-none"}
                   />
                 </div>
               </div>
-            </div>
-          </Card>
-        )}
-
-        {/* Step 3: Labourers */}
-        {step === 3 && (
-          <Card title="Step 3: Labourers">
-            <p className="text-sm text-muted-foreground mb-4">
-              Add labourers, their pending chains, and their per-piece rates
-            </p>
-            <div className="space-y-4 mb-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Name</label>
-                  <Input
-                    type="text"
-                    value={newLabourer.name}
-                    onChange={(e) => setNewLabourer((prev) => ({ ...prev, name: e.target.value }))}
-                    placeholder="Labourer name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Phone (Optional)</label>
-                  <Input
-                    type="tel"
-                    value={newLabourer.phone}
-                    onChange={(e) => setNewLabourer((prev) => ({ ...prev, phone: e.target.value }))}
-                    placeholder="Phone number"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">OT Rate (₹/piece)</label>
-                  <NumericInput
-                    step="0.01"
-                    value={newLabourer.rateOt}
-                    onChange={(v) => setNewLabourer((prev) => ({ ...prev, rateOt: parseFloat(v) || 0 }))}
-                    placeholder="Rate per OT chain"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Medium Rate (₹/piece)</label>
-                  <NumericInput
-                    step="0.01"
-                    value={newLabourer.rateMedium}
-                    onChange={(v) => setNewLabourer((prev) => ({ ...prev, rateMedium: parseFloat(v) || 0 }))}
-                    placeholder="Rate per Medium chain"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">OT Chains (pending)</label>
-                  <NumericInput
-                    allowDecimal={false}
-                    value={newLabourer.otChains}
-                    onChange={(v) => setNewLabourer((prev) => ({ ...prev, otChains: parseInt(v) || 0 }))}
-                    placeholder="Chains currently with labourer"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Medium Chains (pending)</label>
-                  <NumericInput
-                    allowDecimal={false}
-                    value={newLabourer.mediumChains}
-                    onChange={(v) => setNewLabourer((prev) => ({ ...prev, mediumChains: parseInt(v) || 0 }))}
-                    placeholder="Chains currently with labourer"
-                  />
-                </div>
-              </div>
-              <Button onClick={addLabourer}>Add Labourer</Button>
-            </div>
-
-            {data.labourers.length > 0 && (
-              <DataTable
-                columns={["Name", "Phone", "OT Rate", "Med Rate", "OT Chains", "Med Chains", "Action"]}
-                rows={data.labourers.map((labourer, index) => [
-                  labourer.name,
-                  labourer.phone || "-",
-                  labourer.rateOt ? `₹${labourer.rateOt}` : "-",
-                  labourer.rateMedium ? `₹${labourer.rateMedium}` : "-",
-                  labourer.otChains,
-                  labourer.mediumChains,
-                  <button
-                    key={index}
-                    onClick={() => removeLabourer(index)}
-                    className="text-destructive hover:underline text-sm"
-                  >
-                    Remove
-                  </button>,
-                ])}
-              />
             )}
-          </Card>
-        )}
 
-        {/* Step 4: Finishing Vendors */}
-        {step === 4 && (
-          <Card title="Step 4: Finishing Vendors">
-            <p className="text-sm text-muted-foreground mb-4">
-              Add finishing vendors and their current pending chains
-            </p>
-            <div className="space-y-4 mb-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Vendor Name</label>
-                  <input
-                    type="text"
-                    value={newVendor.name}
-                    onChange={(e) =>
-                      setNewVendor((prev) => ({ ...prev, name: e.target.value }))
-                    }
-                    className="w-full px-3 py-2 border rounded-md"
-                  />
+            {/* ── Step 2: Opening Inventory ── */}
+            {step === 2 && (
+              <div className="space-y-5">
+                <p className="text-sm text-[hsl(var(--foreground-muted))]">Enter your current stock levels. Leave at 0 if you&apos;re starting fresh.</p>
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--foreground-muted))]">Kanni (Raw Material)</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-medium">OT Kanni (kg)</label>
+                      <NumericInput step="0.001" value={data.openingInventory.kanniOtKg}
+                        onChange={v => setData(p => ({ ...p, openingInventory: { ...p.openingInventory, kanniOtKg: parseFloat(v) || 0 } }))} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-medium">Medium Kanni (kg)</label>
+                      <NumericInput step="0.001" value={data.openingInventory.kanniMediumKg}
+                        onChange={v => setData(p => ({ ...p, openingInventory: { ...p.openingInventory, kanniMediumKg: parseFloat(v) || 0 } }))} />
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Phone</label>
-                  <input
-                    type="tel"
-                    value={newVendor.phone}
-                    onChange={(e) =>
-                      setNewVendor((prev) => ({ ...prev, phone: e.target.value }))
-                    }
-                    className="w-full px-3 py-2 border rounded-md"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Area</label>
-                  <input
-                    type="text"
-                    value={newVendor.area}
-                    onChange={(e) =>
-                      setNewVendor((prev) => ({ ...prev, area: e.target.value }))
-                    }
-                    className="w-full px-3 py-2 border rounded-md"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">OT Chains (pending)</label>
-                  <NumericInput
-                    allowDecimal={false}
-                    value={newVendor.otChains}
-                    onChange={(v) =>
-                      setNewVendor((prev) => ({
-                        ...prev,
-                        otChains: parseInt(v) || 0,
-                      }))
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Medium Chains (pending)</label>
-                  <NumericInput
-                    allowDecimal={false}
-                    value={newVendor.mediumChains}
-                    onChange={(v) =>
-                      setNewVendor((prev) => ({
-                        ...prev,
-                        mediumChains: parseInt(v) || 0,
-                      }))
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Rate OT (₹/piece)</label>
-                  <NumericInput
-                    step="0.01"
-                    value={newVendor.rateOt}
-                    onChange={(v) =>
-                      setNewVendor((prev) => ({
-                        ...prev,
-                        rateOt: parseFloat(v) || 0,
-                      }))
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Rate Medium (₹/piece)</label>
-                  <NumericInput
-                    step="0.01"
-                    value={newVendor.rateMedium}
-                    onChange={(v) =>
-                      setNewVendor((prev) => ({
-                        ...prev,
-                        rateMedium: parseFloat(v) || 0,
-                      }))
-                    }
-                  />
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--foreground-muted))]">Unfinished Chains</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-medium">OT Chains</label>
+                      <NumericInput allowDecimal={false} value={data.openingInventory.otChains}
+                        onChange={v => setData(p => ({ ...p, openingInventory: { ...p.openingInventory, otChains: parseInt(v) || 0 } }))} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-medium">Medium Chains</label>
+                      <NumericInput allowDecimal={false} value={data.openingInventory.mediumChains}
+                        onChange={v => setData(p => ({ ...p, openingInventory: { ...p.openingInventory, mediumChains: parseInt(v) || 0 } }))} />
+                    </div>
+                  </div>
                 </div>
               </div>
-              <Button onClick={addVendor}>Add Vendor</Button>
-            </div>
-
-            {data.vendors.length > 0 && (
-              <DataTable
-                columns={["Name", "Phone", "Area", "OT Chains", "Medium Chains", "Rate OT", "Rate Medium", "Action"]}
-                rows={data.vendors.map((vendor, index) => [
-                  vendor.name,
-                  vendor.phone || "-",
-                  vendor.area || "-",
-                  vendor.otChains,
-                  vendor.mediumChains,
-                  vendor.rateOt ? `₹${vendor.rateOt}` : "-",
-                  vendor.rateMedium ? `₹${vendor.rateMedium}` : "-",
-                  <button
-                    key={index}
-                    onClick={() => removeVendor(index)}
-                    className="text-destructive hover:underline"
-                  >
-                    Remove
-                  </button>,
-                ])}
-              />
             )}
-          </Card>
-        )}
 
-        {/* Step 5: Review */}
-        {step === 5 && (
-          <Card title="Step 5: Review & Finish">
-            <div className="space-y-6">
-              <div>
-                <h3 className="font-semibold mb-2">Business Details</h3>
-                <p className="text-sm text-muted-foreground">
-                  Logo: {data.businessDetails.logo || "Not provided"}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Address: {data.businessDetails.address || "Not provided"}
-                </p>
+            {/* ── Step 3: Labourers ── */}
+            {step === 3 && (
+              <div className="space-y-5">
+                <p className="text-sm text-[hsl(var(--foreground-muted))]">Add your labourers with their rates and any chains they currently hold.</p>
+                <div className="rounded-[var(--radius)] border border-border bg-[hsl(var(--muted)/0.3)] p-4 space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-medium">Name</label>
+                      <Input value={newLabourer.name} placeholder="Labourer name"
+                        onChange={e => setNewLabourer(p => ({ ...p, name: e.target.value }))} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-medium">Phone</label>
+                      <Input type="tel" value={newLabourer.phone} placeholder="Optional"
+                        onChange={e => setNewLabourer(p => ({ ...p, phone: e.target.value }))} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-medium">OT Rate (₹/piece)</label>
+                      <NumericInput step="0.01" value={newLabourer.rateOt} placeholder="e.g. 2.50"
+                        onChange={v => setNewLabourer(p => ({ ...p, rateOt: parseFloat(v) || 0 }))} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-medium">Medium Rate (₹/piece)</label>
+                      <NumericInput step="0.01" value={newLabourer.rateMedium} placeholder="e.g. 1.75"
+                        onChange={v => setNewLabourer(p => ({ ...p, rateMedium: parseFloat(v) || 0 }))} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-medium">OT Chains (pending)</label>
+                      <NumericInput allowDecimal={false} value={newLabourer.otChains}
+                        onChange={v => setNewLabourer(p => ({ ...p, otChains: parseInt(v) || 0 }))} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-medium">Medium Chains (pending)</label>
+                      <NumericInput allowDecimal={false} value={newLabourer.mediumChains}
+                        onChange={v => setNewLabourer(p => ({ ...p, mediumChains: parseInt(v) || 0 }))} />
+                    </div>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={addLabourer}>
+                    <Plus className="h-3.5 w-3.5" /> Add Labourer
+                  </Button>
+                </div>
+                {data.labourers.length > 0 && (
+                  <DataTable
+                    columns={["Name", "OT Rate", "Med Rate", "OT Chains", "Med Chains", ""]}
+                    rows={data.labourers.map((l, i) => [
+                      l.name,
+                      l.rateOt ? `₹${l.rateOt}` : "-",
+                      l.rateMedium ? `₹${l.rateMedium}` : "-",
+                      l.otChains || "-",
+                      l.mediumChains || "-",
+                      <button key={i} onClick={() => removeLabourer(i)} className="p-1 rounded text-[hsl(var(--foreground-muted))] hover:text-destructive hover:bg-red-50 transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>,
+                    ])}
+                  />
+                )}
               </div>
+            )}
 
-              <div>
-                <h3 className="font-semibold mb-2">Opening Inventory</h3>
-                <DataTable
-                  columns={["Type", "Quantity"]}
-                  rows={[
-                    ["OT Kanni", `${data.openingInventory.kanniOtKg} kg`],
-                    ["Medium Kanni", `${data.openingInventory.kanniMediumKg} kg`],
-                    ["OT Chains", data.openingInventory.otChains],
+            {/* ── Step 4: Finishing Vendors ── */}
+            {step === 4 && (
+              <div className="space-y-5">
+                <p className="text-sm text-[hsl(var(--foreground-muted))]">Add finishing vendors and their current pending chains.</p>
+                <div className="rounded-[var(--radius)] border border-border bg-[hsl(var(--muted)/0.3)] p-4 space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-medium">Vendor Name</label>
+                      <Input value={newVendor.name} placeholder="Vendor name"
+                        onChange={e => setNewVendor(p => ({ ...p, name: e.target.value }))} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-medium">Phone</label>
+                      <Input type="tel" value={newVendor.phone} placeholder="Optional"
+                        onChange={e => setNewVendor(p => ({ ...p, phone: e.target.value }))} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-medium">Area</label>
+                      <Input value={newVendor.area} placeholder="Optional"
+                        onChange={e => setNewVendor(p => ({ ...p, area: e.target.value }))} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-medium">Rate OT (₹/piece)</label>
+                      <NumericInput step="0.01" value={newVendor.rateOt}
+                        onChange={v => setNewVendor(p => ({ ...p, rateOt: parseFloat(v) || 0 }))} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-medium">Rate Medium (₹/piece)</label>
+                      <NumericInput step="0.01" value={newVendor.rateMedium}
+                        onChange={v => setNewVendor(p => ({ ...p, rateMedium: parseFloat(v) || 0 }))} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-medium">OT Chains (pending)</label>
+                      <NumericInput allowDecimal={false} value={newVendor.otChains}
+                        onChange={v => setNewVendor(p => ({ ...p, otChains: parseInt(v) || 0 }))} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-medium">Medium Chains (pending)</label>
+                      <NumericInput allowDecimal={false} value={newVendor.mediumChains}
+                        onChange={v => setNewVendor(p => ({ ...p, mediumChains: parseInt(v) || 0 }))} />
+                    </div>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={addVendor}>
+                    <Plus className="h-3.5 w-3.5" /> Add Vendor
+                  </Button>
+                </div>
+                {data.vendors.length > 0 && (
+                  <DataTable
+                    columns={["Name", "Rate OT", "Rate Med", "OT Chains", "Med Chains", ""]}
+                    rows={data.vendors.map((v, i) => [
+                      v.name,
+                      v.rateOt ? `₹${v.rateOt}` : "-",
+                      v.rateMedium ? `₹${v.rateMedium}` : "-",
+                      v.otChains || "-",
+                      v.mediumChains || "-",
+                      <button key={i} onClick={() => removeVendor(i)} className="p-1 rounded text-[hsl(var(--foreground-muted))] hover:text-destructive hover:bg-red-50 transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>,
+                    ])}
+                  />
+                )}
+              </div>
+            )}
+
+            {/* ── Step 5: Review ── */}
+            {step === 5 && (
+              <div className="space-y-6">
+                <div className="rounded-[var(--radius)] bg-[hsl(43,95%,96%)] border border-[hsl(43,80%,80%)] px-4 py-3 text-sm text-[hsl(43,50%,30%)]">
+                  Review everything below before completing setup. You can go back to make changes.
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--foreground-muted))]">Business Details</p>
+                  <p className="text-sm">Logo: <span className="font-medium">{data.businessDetails.logo || "Not provided"}</span></p>
+                  <p className="text-sm">Address: <span className="font-medium">{data.businessDetails.address || "Not provided"}</span></p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--foreground-muted))]">Opening Inventory</p>
+                  <DataTable columns={["Item", "Quantity"]} rows={[
+                    ["OT Kanni",      `${data.openingInventory.kanniOtKg} kg`],
+                    ["Medium Kanni",  `${data.openingInventory.kanniMediumKg} kg`],
+                    ["OT Chains",     data.openingInventory.otChains],
                     ["Medium Chains", data.openingInventory.mediumChains],
-                  ]}
-                />
-              </div>
-
-              <div>
-                <h3 className="font-semibold mb-2">Labourers ({data.labourers.length})</h3>
-                {data.labourers.length > 0 ? (
-                  <DataTable
-                    columns={["Name", "Phone", "OT Rate", "Med Rate", "OT Chains", "Med Chains"]}
-                    rows={data.labourers.map((labourer) => [
-                      labourer.name,
-                      labourer.phone || "-",
-                      labourer.rateOt ? `₹${labourer.rateOt}` : "-",
-                      labourer.rateMedium ? `₹${labourer.rateMedium}` : "-",
-                      labourer.otChains,
-                      labourer.mediumChains,
-                    ])}
-                  />
-                ) : (
-                  <p className="text-sm text-muted-foreground">No labourers added</p>
+                  ]} />
+                </div>
+                {data.labourers.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--foreground-muted))]">Labourers ({data.labourers.length})</p>
+                    <DataTable columns={["Name", "OT Rate", "Med Rate", "OT", "Med"]}
+                      rows={data.labourers.map(l => [l.name, l.rateOt ? `₹${l.rateOt}` : "-", l.rateMedium ? `₹${l.rateMedium}` : "-", l.otChains || 0, l.mediumChains || 0])} />
+                  </div>
+                )}
+                {data.vendors.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--foreground-muted))]">Finishing Vendors ({data.vendors.length})</p>
+                    <DataTable columns={["Name", "Rate OT", "Rate Med"]}
+                      rows={data.vendors.map(v => [v.name, v.rateOt ? `₹${v.rateOt}` : "-", v.rateMedium ? `₹${v.rateMedium}` : "-"])} />
+                  </div>
                 )}
               </div>
+            )}
 
-              <div>
-                <h3 className="font-semibold mb-2">Finishing Vendors ({data.vendors.length})</h3>
-                {data.vendors.length > 0 ? (
-                  <DataTable
-                    columns={["Name", "OT Chains", "Medium Chains"]}
-                    rows={data.vendors.map((vendor) => [
-                      vendor.name,
-                      vendor.otChains,
-                      vendor.mediumChains,
-                    ])}
-                  />
-                ) : (
-                  <p className="text-sm text-muted-foreground">No vendors added</p>
-                )}
-              </div>
-            </div>
-          </Card>
-        )}
+          </div>
+        </div>
 
-        {/* Navigation Buttons */}
-        <div className="flex justify-between mt-8">
-          <Button
-            variant="secondary"
-            onClick={prevStep}
-            disabled={step === 1 || isLoading}
-          >
-            Previous
+        {/* ── Navigation ── */}
+        <div className="flex items-center justify-between gap-3 pb-8">
+          <Button variant="outline" onClick={() => setStep(s => Math.max(1, s - 1))} disabled={step === 1 || isLoading}>
+            <ChevronLeft className="h-4 w-4" /> Back
           </Button>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={handleSkip}
-              disabled={isLoading}
-            >
-              {isLoading ? "Skipping..." : "Skip for Now"}
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={handleSkip} disabled={isLoading}>
+              {isLoading ? "Skipping…" : "Skip for now"}
             </Button>
             {step < 5 ? (
-              <Button onClick={nextStep}>Next</Button>
+              <Button variant="gold" onClick={() => setStep(s => Math.min(5, s + 1))}>
+                Next <ChevronRight className="h-4 w-4" />
+              </Button>
             ) : (
-              <Button onClick={handleSubmit} disabled={isLoading}>
-                {isLoading ? "Completing Setup..." : "Complete Setup"}
+              <Button variant="gold" onClick={handleSubmit} disabled={isLoading}>
+                {isLoading ? "Saving…" : <><Check className="h-4 w-4" /> Complete Setup</>}
               </Button>
             )}
           </div>
         </div>
+
       </div>
     </div>
   )

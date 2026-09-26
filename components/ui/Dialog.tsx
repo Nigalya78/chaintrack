@@ -1,52 +1,91 @@
 "use client";
 
 import { useEffect } from "react";
-import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type DialogProps = {
   open: boolean;
   onClose: () => void;
   title: string;
+  description?: string;
   children: React.ReactNode;
   className?: string;
 };
 
-export function Dialog({ open, onClose, title, children, className }: Readonly<DialogProps>) {
+export function Dialog({
+  open,
+  onClose,
+  title,
+  description,
+  children,
+  className,
+}: Readonly<DialogProps>) {
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = "unset";
+      document.body.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = "unset";
+      document.body.style.overflow = "";
     };
   }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [open, onClose]);
 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div 
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/40 backdrop-blur-[2px]"
         onClick={onClose}
+        aria-hidden
       />
-      <div className={cn(
-        "relative z-50 w-full max-w-lg rounded-lg border bg-card p-6 shadow-lg",
-        className
-      )}>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">{title}</h2>
+
+      {/* Panel */}
+      <div
+        role="dialog"
+        aria-modal
+        className={cn(
+          "relative z-50 w-full sm:max-w-lg",
+          "bg-[hsl(var(--surface))] border border-border",
+          "rounded-t-[var(--radius-xl)] sm:rounded-[var(--radius-xl)]",
+          "shadow-[var(--shadow-xl)]",
+          "overflow-hidden",
+          className
+        )}
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4 px-5 pt-5 pb-4 border-b border-border/60">
+          <div>
+            <h2 className="text-[15px] font-semibold text-foreground">{title}</h2>
+            {description && (
+              <p className="text-sm text-[hsl(var(--foreground-muted))] mt-0.5">
+                {description}
+              </p>
+            )}
+          </div>
           <button
             onClick={onClose}
-            className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            className="shrink-0 p-1 rounded-[var(--radius-sm)] text-[hsl(var(--foreground-muted))] hover:text-foreground hover:bg-accent transition-colors mt-0.5"
+            aria-label="Close"
           >
             <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
           </button>
         </div>
-        {children}
+
+        {/* Body */}
+        <div className="px-5 py-5">{children}</div>
       </div>
     </div>
   );

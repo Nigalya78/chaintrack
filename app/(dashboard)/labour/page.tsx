@@ -7,200 +7,81 @@ import { DataTable } from "@/components/ui/DataTable"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Dialog } from "@/components/ui/Dialog"
-import { Pencil, Trash2 } from "lucide-react"
 import { NumericInput } from "@/components/ui/NumericInput"
+import { S } from "@/lib/form-styles"
+import { Pencil, Trash2, Plus, X } from "lucide-react"
 
-type Labourer = {
-  id: string
-  name: string
-  phone: string | null
-  rateOt: number | null
-  rateMedium: number | null
-  active: boolean
-}
-
-type FormData = {
-  name: string
-  phone: string
-  rateOt: string
-  rateMedium: string
-}
-
-const emptyForm: FormData = {
-  name: "",
-  phone: "",
-  rateOt: "",
-  rateMedium: "",
-}
+type Labourer = { id: string; name: string; phone: string|null; rateOt: number|null; rateMedium: number|null; active: boolean }
+type FD = { name: string; phone: string; rateOt: string; rateMedium: string }
+const empty: FD = { name: "", phone: "", rateOt: "", rateMedium: "" }
 
 export default function LabourPage() {
   const { data: session } = useSession()
-  const [labourers, setLabourers] = useState<Labourer[]>([])
+  const [rows, setRows] = useState<Labourer[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
-  const [formData, setFormData] = useState<FormData>(emptyForm)
-
-  const [editLabourer, setEditLabourer] = useState<Labourer | null>(null)
-  const [editForm, setEditForm] = useState<FormData>(emptyForm)
+  const [fd, setFd] = useState<FD>(empty)
+  const [edit, setEdit] = useState<Labourer|null>(null)
+  const [ef, setEf] = useState<FD>(empty)
   const [saving, setSaving] = useState(false)
-  const [deleteLabourer, setDeleteLabourer] = useState<Labourer | null>(null)
+  const [del, setDel] = useState<Labourer|null>(null)
   const [deleting, setDeleting] = useState(false)
 
-  useEffect(() => {
-    if (session?.user) {
-      loadLabourers()
-    }
-  }, [session])
+  useEffect(() => { if (session?.user) load() }, [session])
 
-  async function loadLabourers() {
-    try {
-      const response = await fetch("/api/labourers")
-      if (response.ok) {
-        const data = await response.json()
-        setLabourers(data)
-      }
-    } catch (error) {
-      console.error("Failed to load labourers:", error)
-    } finally {
-      setLoading(false)
-    }
+  async function load() {
+    const res = await fetch("/api/labourers")
+    if (res.ok) setRows(await res.json())
+    setLoading(false)
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function create(e: React.FormEvent) {
     e.preventDefault()
-    try {
-      const response = await fetch("/api/labourers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          rateOt: formData.rateOt ? parseFloat(formData.rateOt) : null,
-          rateMedium: formData.rateMedium ? parseFloat(formData.rateMedium) : null,
-        }),
-      })
-
-      if (response.ok) {
-        setShowForm(false)
-        setFormData(emptyForm)
-        loadLabourers()
-      }
-    } catch (error) {
-      console.error("Failed to create labourer:", error)
-    }
+    const res = await fetch("/api/labourers", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...fd, rateOt: fd.rateOt ? parseFloat(fd.rateOt) : null, rateMedium: fd.rateMedium ? parseFloat(fd.rateMedium) : null }) })
+    if (res.ok) { setShowForm(false); setFd(empty); load() }
   }
 
-  function openEdit(labourer: Labourer) {
-    setEditLabourer(labourer)
-    setEditForm({
-      name: labourer.name,
-      phone: labourer.phone ?? "",
-      rateOt: labourer.rateOt != null ? String(labourer.rateOt) : "",
-      rateMedium: labourer.rateMedium != null ? String(labourer.rateMedium) : "",
-    })
-  }
+  function openEdit(r: Labourer) { setEdit(r); setEf({ name: r.name, phone: r.phone ?? "", rateOt: r.rateOt != null ? String(r.rateOt) : "", rateMedium: r.rateMedium != null ? String(r.rateMedium) : "" }) }
 
-  async function handleEditSubmit(e: React.FormEvent) {
+  async function update(e: React.FormEvent) {
     e.preventDefault()
-    if (!editLabourer) return
+    if (!edit) return
     setSaving(true)
-    try {
-      const response = await fetch(`/api/labourers/${editLabourer.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: editForm.name,
-          phone: editForm.phone,
-          rateOt: editForm.rateOt ? parseFloat(editForm.rateOt) : null,
-          rateMedium: editForm.rateMedium ? parseFloat(editForm.rateMedium) : null,
-        }),
-      })
-
-      if (response.ok) {
-        setEditLabourer(null)
-        loadLabourers()
-      }
-    } catch (error) {
-      console.error("Failed to update labourer:", error)
-    } finally {
-      setSaving(false)
-    }
+    const res = await fetch(`/api/labourers/${edit.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: ef.name, phone: ef.phone, rateOt: ef.rateOt ? parseFloat(ef.rateOt) : null, rateMedium: ef.rateMedium ? parseFloat(ef.rateMedium) : null }) })
+    if (res.ok) { setEdit(null); load() }
+    setSaving(false)
   }
 
-  async function handleDelete() {
-    if (!deleteLabourer) return
+  async function doDelete() {
+    if (!del) return
     setDeleting(true)
-    try {
-      const response = await fetch(`/api/labourers/${deleteLabourer.id}`, {
-        method: "DELETE",
-      })
-      if (response.ok) {
-        setDeleteLabourer(null)
-        loadLabourers()
-      }
-    } catch (error) {
-      console.error("Failed to delete labourer:", error)
-    } finally {
-      setDeleting(false)
-    }
+    const res = await fetch(`/api/labourers/${del.id}`, { method: "DELETE" })
+    if (res.ok) { setDel(null); load() }
+    setDeleting(false)
   }
 
-  if (loading) {
-    return <div className="p-8">Loading...</div>
-  }
+  if (loading) return <div className="p-8 text-sm text-[hsl(var(--foreground-muted))] animate-pulse">Loading…</div>
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Labourers</h1>
-          <p className="text-muted-foreground">Manage your labour workforce</p>
+          <h1 className="text-2xl font-bold tracking-tight">Labourers</h1>
+          <p className="text-sm text-[hsl(var(--foreground-muted))] mt-0.5">{rows.length} worker{rows.length !== 1 ? "s" : ""}</p>
         </div>
-        <Button onClick={() => setShowForm(!showForm)}>
-          {showForm ? "Cancel" : "Add Labourer"}
+        <Button variant="gold" onClick={() => setShowForm(!showForm)}>
+          {showForm ? <><X className="h-4 w-4"/>Cancel</> : <><Plus className="h-4 w-4"/>Add Labourer</>}
         </Button>
       </div>
 
       {showForm && (
-        <Card title="Add New Labourer">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Name</label>
-                <Input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Enter name"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Phone</label>
-                <Input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="Enter phone"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">OT Rate (per piece)</label>
-                <NumericInput
-                  step="0.01"
-                  value={formData.rateOt}
-                  onChange={(v) => setFormData({ ...formData, rateOt: v })}
-                  placeholder="Enter OT rate"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Medium Rate (per piece)</label>
-                <NumericInput
-                  step="0.01"
-                  value={formData.rateMedium}
-                  onChange={(v) => setFormData({ ...formData, rateMedium: v })}
-                  placeholder="Enter Medium rate"
-                />
-              </div>
+        <Card title="New Labourer">
+          <form onSubmit={create} className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5"><label className="block text-sm font-medium">Name<span className="text-destructive ml-0.5">*</span></label><Input required value={fd.name} onChange={e => setFd(p => ({ ...p, name: e.target.value }))} placeholder="Full name" /></div>
+              <div className="space-y-1.5"><label className="block text-sm font-medium">Phone</label><Input type="tel" value={fd.phone} onChange={e => setFd(p => ({ ...p, phone: e.target.value }))} placeholder="Optional" /></div>
+              <div className="space-y-1.5"><label className="block text-sm font-medium">OT Rate (₹/piece)</label><NumericInput step="0.01" value={fd.rateOt} onChange={v => setFd(p => ({ ...p, rateOt: v }))} placeholder="e.g. 2.50" /></div>
+              <div className="space-y-1.5"><label className="block text-sm font-medium">Medium Rate (₹/piece)</label><NumericInput step="0.01" value={fd.rateMedium} onChange={v => setFd(p => ({ ...p, rateMedium: v }))} placeholder="e.g. 1.75" /></div>
             </div>
             <Button type="submit" variant="gold">Save Labourer</Button>
           </form>
@@ -209,115 +90,40 @@ export default function LabourPage() {
 
       <Card title="All Labourers">
         <DataTable
-          columns={["Name", "Phone", "OT Rate", "Medium Rate", "Status", "Actions"]}
-          rows={labourers.map((labourer) => [
-            labourer.name,
-            labourer.phone || "-",
-            labourer.rateOt ? `Rs. ${labourer.rateOt}` : "-",
-            labourer.rateMedium ? `Rs. ${labourer.rateMedium}` : "-",
-            labourer.active ? "Active" : "Inactive",
-            <div key={labourer.id} className="flex items-center gap-2">
-              <button
-                onClick={() => openEdit(labourer)}
-                className="p-1.5 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                title="Edit"
-              >
-                <Pencil className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setDeleteLabourer(labourer)}
-                className="p-1.5 rounded hover:bg-red-100 transition-colors text-muted-foreground hover:text-red-600"
-                title="Delete"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
+          columns={["Name", "Phone", "OT Rate", "Med Rate", "Status", ""]}
+          rows={rows.map(r => [
+            r.name, r.phone || "-",
+            r.rateOt ? `₹${r.rateOt}` : "-",
+            r.rateMedium ? `₹${r.rateMedium}` : "-",
+            <span key={r.id} className={`inline-flex text-xs font-medium px-2 py-0.5 rounded-full ${r.active ? "bg-emerald-50 text-emerald-700" : "bg-[hsl(var(--muted))] text-[hsl(var(--foreground-muted))]"}`}>{r.active ? "Active" : "Inactive"}</span>,
+            <div key={r.id+"a"} className="flex items-center gap-1">
+              <button onClick={() => openEdit(r)} className={S.iconBtn} title="Edit"><Pencil className="h-3.5 w-3.5"/></button>
+              <button onClick={() => setDel(r)} className={S.iconBtnDanger} title="Delete"><Trash2 className="h-3.5 w-3.5"/></button>
             </div>,
           ])}
         />
       </Card>
 
-      {/* Edit Dialog */}
-      <Dialog
-        open={editLabourer !== null}
-        onClose={() => setEditLabourer(null)}
-        title="Edit Labourer"
-      >
-        <form onSubmit={handleEditSubmit} className="space-y-4">
+      <Dialog open={edit !== null} onClose={() => setEdit(null)} title="Edit Labourer">
+        <form onSubmit={update} className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Name</label>
-              <Input
-                type="text"
-                required
-                value={editForm.name}
-                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                placeholder="Enter name"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Phone</label>
-              <Input
-                type="tel"
-                value={editForm.phone}
-                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                placeholder="Enter phone"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">OT Rate (per piece)</label>
-              <NumericInput
-                step="0.01"
-                value={editForm.rateOt}
-                onChange={(v) => setEditForm({ ...editForm, rateOt: v })}
-                placeholder="Enter OT rate"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Medium Rate (per piece)</label>
-              <NumericInput
-                step="0.01"
-                value={editForm.rateMedium}
-                onChange={(v) => setEditForm({ ...editForm, rateMedium: v })}
-                placeholder="Enter Medium rate"
-              />
-            </div>
+            <div className="space-y-1.5"><label className="block text-sm font-medium">Name<span className="text-destructive ml-0.5">*</span></label><Input required value={ef.name} onChange={e => setEf(p => ({ ...p, name: e.target.value }))} /></div>
+            <div className="space-y-1.5"><label className="block text-sm font-medium">Phone</label><Input type="tel" value={ef.phone} onChange={e => setEf(p => ({ ...p, phone: e.target.value }))} /></div>
+            <div className="space-y-1.5"><label className="block text-sm font-medium">OT Rate (₹)</label><NumericInput step="0.01" value={ef.rateOt} onChange={v => setEf(p => ({ ...p, rateOt: v }))} /></div>
+            <div className="space-y-1.5"><label className="block text-sm font-medium">Medium Rate (₹)</label><NumericInput step="0.01" value={ef.rateMedium} onChange={v => setEf(p => ({ ...p, rateMedium: v }))} /></div>
           </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => setEditLabourer(null)}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="gold" disabled={saving}>
-              {saving ? "Saving..." : "Save Changes"}
-            </Button>
+          <div className="flex justify-end gap-2 pt-1">
+            <Button type="button" variant="outline" onClick={() => setEdit(null)}>Cancel</Button>
+            <Button type="submit" variant="gold" disabled={saving}>{saving ? "Saving…" : "Save Changes"}</Button>
           </div>
         </form>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={deleteLabourer !== null}
-        onClose={() => setDeleteLabourer(null)}
-        title="Delete Labourer"
-      >
-        <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Are you sure you want to delete{" "}
-            <span className="font-semibold text-foreground">{deleteLabourer?.name}</span>?
-            This action cannot be undone.
-          </p>
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setDeleteLabourer(null)}>
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              onClick={handleDelete}
-              disabled={deleting}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              {deleting ? "Deleting..." : "Delete"}
-            </Button>
-          </div>
+      <Dialog open={del !== null} onClose={() => setDel(null)} title="Delete Labourer" description="This action cannot be undone.">
+        <p className="text-sm text-[hsl(var(--foreground-muted))] mb-5">Delete <span className="font-semibold text-foreground">{del?.name}</span>?</p>
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={() => setDel(null)}>Cancel</Button>
+          <Button variant="danger" onClick={doDelete} disabled={deleting}>{deleting ? "Deleting…" : "Delete"}</Button>
         </div>
       </Dialog>
     </div>

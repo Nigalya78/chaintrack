@@ -7,234 +7,92 @@ import { DataTable } from "@/components/ui/DataTable"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Dialog } from "@/components/ui/Dialog"
-import { Pencil, Trash2 } from "lucide-react"
 import { NumericInput } from "@/components/ui/NumericInput"
+import { Select } from "@/components/ui/Select"
+import { S } from "@/lib/form-styles"
+import { Pencil, Trash2, Plus, X } from "lucide-react"
 
-type Vendor = {
-  id: string
-  name: string
-  phone: string | null
-  area: string | null
-  type: "SUPPLIER" | "FINISHING"
-  rateOt: number | null
-  rateMedium: number | null
-}
-
-type FormData = {
-  name: string
-  phone: string
-  area: string
-  type: "SUPPLIER" | "FINISHING"
-  rateOt: string
-  rateMedium: string
-}
-
-const emptyForm: FormData = {
-  name: "",
-  phone: "",
-  area: "",
-  type: "SUPPLIER",
-  rateOt: "",
-  rateMedium: "",
-}
+type Vendor = { id: string; name: string; phone: string|null; area: string|null; type: "SUPPLIER"|"FINISHING"; rateOt: number|null; rateMedium: number|null }
+type FD = { name: string; phone: string; area: string; type: "SUPPLIER"|"FINISHING"; rateOt: string; rateMedium: string }
+const empty: FD = { name: "", phone: "", area: "", type: "SUPPLIER", rateOt: "", rateMedium: "" }
 
 export default function VendorsPage() {
   const { data: session } = useSession()
-  const [vendors, setVendors] = useState<Vendor[]>([])
+  const [rows, setRows] = useState<Vendor[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
-  const [formData, setFormData] = useState<FormData>(emptyForm)
-
-  const [editVendor, setEditVendor] = useState<Vendor | null>(null)
-  const [editForm, setEditForm] = useState<FormData>(emptyForm)
+  const [fd, setFd] = useState<FD>(empty)
+  const [edit, setEdit] = useState<Vendor|null>(null)
+  const [ef, setEf] = useState<FD>(empty)
   const [saving, setSaving] = useState(false)
-  const [deleteVendor, setDeleteVendor] = useState<Vendor | null>(null)
+  const [del, setDel] = useState<Vendor|null>(null)
   const [deleting, setDeleting] = useState(false)
 
-  useEffect(() => {
-    if (session?.user) {
-      loadVendors()
-    }
-  }, [session])
+  useEffect(() => { if (session?.user) load() }, [session])
 
-  async function loadVendors() {
-    try {
-      const response = await fetch("/api/vendors")
-      if (response.ok) {
-        const data = await response.json()
-        setVendors(data)
-      }
-    } catch (error) {
-      console.error("Failed to load vendors:", error)
-    } finally {
-      setLoading(false)
-    }
+  async function load() {
+    const res = await fetch("/api/vendors")
+    if (res.ok) setRows(await res.json())
+    setLoading(false)
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function create(e: React.FormEvent) {
     e.preventDefault()
-    try {
-      const response = await fetch("/api/vendors", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          rateOt: formData.rateOt ? parseFloat(formData.rateOt) : null,
-          rateMedium: formData.rateMedium ? parseFloat(formData.rateMedium) : null,
-        }),
-      })
-
-      if (response.ok) {
-        setShowForm(false)
-        setFormData(emptyForm)
-        loadVendors()
-      }
-    } catch (error) {
-      console.error("Failed to create vendor:", error)
-    }
+    const res = await fetch("/api/vendors", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...fd, rateOt: fd.rateOt ? parseFloat(fd.rateOt) : null, rateMedium: fd.rateMedium ? parseFloat(fd.rateMedium) : null }) })
+    if (res.ok) { setShowForm(false); setFd(empty); load() }
   }
 
-  function openEdit(vendor: Vendor) {
-    setEditVendor(vendor)
-    setEditForm({
-      name: vendor.name,
-      phone: vendor.phone ?? "",
-      area: vendor.area ?? "",
-      type: vendor.type,
-      rateOt: vendor.rateOt != null ? String(vendor.rateOt) : "",
-      rateMedium: vendor.rateMedium != null ? String(vendor.rateMedium) : "",
-    })
-  }
+  function openEdit(r: Vendor) { setEdit(r); setEf({ name: r.name, phone: r.phone ?? "", area: r.area ?? "", type: r.type, rateOt: r.rateOt != null ? String(r.rateOt) : "", rateMedium: r.rateMedium != null ? String(r.rateMedium) : "" }) }
 
-  async function handleEditSubmit(e: React.FormEvent) {
+  async function update(e: React.FormEvent) {
     e.preventDefault()
-    if (!editVendor) return
+    if (!edit) return
     setSaving(true)
-    try {
-      const response = await fetch(`/api/vendors/${editVendor.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: editVendor.type,
-          name: editForm.name,
-          phone: editForm.phone,
-          area: editForm.area,
-          rateOt: editForm.rateOt ? parseFloat(editForm.rateOt) : null,
-          rateMedium: editForm.rateMedium ? parseFloat(editForm.rateMedium) : null,
-        }),
-      })
-
-      if (response.ok) {
-        setEditVendor(null)
-        loadVendors()
-      }
-    } catch (error) {
-      console.error("Failed to update vendor:", error)
-    } finally {
-      setSaving(false)
-    }
+    const res = await fetch(`/api/vendors/${edit.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: edit.type, name: ef.name, phone: ef.phone, area: ef.area, rateOt: ef.rateOt ? parseFloat(ef.rateOt) : null, rateMedium: ef.rateMedium ? parseFloat(ef.rateMedium) : null }) })
+    if (res.ok) { setEdit(null); load() }
+    setSaving(false)
   }
 
-  async function handleDelete() {
-    if (!deleteVendor) return
+  async function doDelete() {
+    if (!del) return
     setDeleting(true)
-    try {
-      const response = await fetch(
-        `/api/vendors/${deleteVendor.id}?type=${deleteVendor.type}`,
-        { method: "DELETE" }
-      )
-      if (response.ok) {
-        setDeleteVendor(null)
-        loadVendors()
-      }
-    } catch (error) {
-      console.error("Failed to delete vendor:", error)
-    } finally {
-      setDeleting(false)
-    }
+    const res = await fetch(`/api/vendors/${del.id}?type=${del.type}`, { method: "DELETE" })
+    if (res.ok) { setDel(null); load() }
+    setDeleting(false)
   }
 
-  if (loading) {
-    return <div className="p-8">Loading...</div>
-  }
+  if (loading) return <div className="p-8 text-sm text-[hsl(var(--foreground-muted))] animate-pulse">Loading…</div>
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Vendors</h1>
-          <p className="text-muted-foreground">Manage your suppliers and finishing vendors</p>
+          <h1 className="text-2xl font-bold tracking-tight">Vendors</h1>
+          <p className="text-sm text-[hsl(var(--foreground-muted))] mt-0.5">Suppliers and finishing vendors</p>
         </div>
-        <Button onClick={() => setShowForm(!showForm)}>
-          {showForm ? "Cancel" : "Add Vendor"}
+        <Button variant="gold" onClick={() => setShowForm(!showForm)}>
+          {showForm ? <><X className="h-4 w-4"/>Cancel</> : <><Plus className="h-4 w-4"/>Add Vendor</>}
         </Button>
       </div>
 
       {showForm && (
-        <Card title="Add New Vendor">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Vendor Type</label>
-                <select
-                  value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value as "SUPPLIER" | "FINISHING" })}
-                  className="w-full px-3 py-2 border rounded-md"
-                >
+        <Card title="New Vendor">
+          <form onSubmit={create} className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium">Vendor Type</label>
+                <Select value={fd.type} onChange={e => setFd(p => ({ ...p, type: e.target.value as "SUPPLIER"|"FINISHING" }))}>
                   <option value="SUPPLIER">Supplier</option>
                   <option value="FINISHING">Finishing Vendor</option>
-                </select>
+                </Select>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Name</label>
-                <Input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Enter name"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Phone</label>
-                <Input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="Enter phone"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Area</label>
-                <Input
-                  type="text"
-                  value={formData.area}
-                  onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-                  placeholder="Enter area"
-                />
-              </div>
-              {formData.type === "FINISHING" && (
-                <>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Rate per OT Chain (₹)</label>
-                    <NumericInput
-                      step="0.01"
-                      value={formData.rateOt}
-                      onChange={(v) => setFormData({ ...formData, rateOt: v })}
-                      placeholder="Enter rate"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Rate per Medium Chain (₹)</label>
-                    <NumericInput
-                      step="0.01"
-                      value={formData.rateMedium}
-                      onChange={(v) => setFormData({ ...formData, rateMedium: v })}
-                      placeholder="Enter rate"
-                    />
-                  </div>
-                </>
-              )}
+              <div className="space-y-1.5"><label className="block text-sm font-medium">Name<span className="text-destructive ml-0.5">*</span></label><Input required value={fd.name} onChange={e => setFd(p => ({ ...p, name: e.target.value }))} placeholder="Vendor name" /></div>
+              <div className="space-y-1.5"><label className="block text-sm font-medium">Phone</label><Input type="tel" value={fd.phone} onChange={e => setFd(p => ({ ...p, phone: e.target.value }))} placeholder="Optional" /></div>
+              <div className="space-y-1.5"><label className="block text-sm font-medium">Area</label><Input value={fd.area} onChange={e => setFd(p => ({ ...p, area: e.target.value }))} placeholder="Optional" /></div>
+              {fd.type === "FINISHING" && (<>
+                <div className="space-y-1.5"><label className="block text-sm font-medium">Rate per OT Chain (₹)</label><NumericInput step="0.01" value={fd.rateOt} onChange={v => setFd(p => ({ ...p, rateOt: v }))} /></div>
+                <div className="space-y-1.5"><label className="block text-sm font-medium">Rate per Medium Chain (₹)</label><NumericInput step="0.01" value={fd.rateMedium} onChange={v => setFd(p => ({ ...p, rateMedium: v }))} /></div>
+              </>)}
             </div>
             <Button type="submit" variant="gold">Save Vendor</Button>
           </form>
@@ -243,129 +101,43 @@ export default function VendorsPage() {
 
       <Card title="All Vendors">
         <DataTable
-          columns={["Type", "Name", "Phone", "Area", "Rate OT", "Rate Medium", "Actions"]}
-          rows={vendors.map((vendor) => [
-            vendor.type === "SUPPLIER" ? "Supplier" : "Finishing",
-            vendor.name,
-            vendor.phone || "-",
-            vendor.area || "-",
-            vendor.rateOt ? `₹${vendor.rateOt}` : "-",
-            vendor.rateMedium ? `₹${vendor.rateMedium}` : "-",
-            <div key={vendor.id} className="flex items-center gap-2">
-              <button
-                onClick={() => openEdit(vendor)}
-                className="p-1.5 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                title="Edit"
-              >
-                <Pencil className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setDeleteVendor(vendor)}
-                className="p-1.5 rounded hover:bg-red-100 transition-colors text-muted-foreground hover:text-red-600"
-                title="Delete"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
+          columns={["Type", "Name", "Phone", "Area", "OT Rate", "Med Rate", ""]}
+          rows={rows.map(r => [
+            <span key={r.id} className={`inline-flex text-xs font-medium px-2 py-0.5 rounded-full ${r.type === "FINISHING" ? "bg-violet-50 text-violet-700" : "bg-blue-50 text-blue-700"}`}>{r.type === "FINISHING" ? "Finishing" : "Supplier"}</span>,
+            r.name, r.phone||"-", r.area||"-",
+            r.rateOt ? `₹${r.rateOt}` : "-",
+            r.rateMedium ? `₹${r.rateMedium}` : "-",
+            <div key={r.id+"a"} className="flex items-center gap-1">
+              <button onClick={() => openEdit(r)} className={S.iconBtn} title="Edit"><Pencil className="h-3.5 w-3.5"/></button>
+              <button onClick={() => setDel(r)} className={S.iconBtnDanger} title="Delete"><Trash2 className="h-3.5 w-3.5"/></button>
             </div>,
           ])}
         />
       </Card>
 
-      {/* Edit Dialog */}
-      <Dialog
-        open={editVendor !== null}
-        onClose={() => setEditVendor(null)}
-        title={`Edit ${editVendor?.type === "SUPPLIER" ? "Supplier" : "Finishing Vendor"}`}
-      >
-        <form onSubmit={handleEditSubmit} className="space-y-4">
+      <Dialog open={edit !== null} onClose={() => setEdit(null)} title={`Edit ${edit?.type === "FINISHING" ? "Finishing Vendor" : "Supplier"}`}>
+        <form onSubmit={update} className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Name</label>
-              <Input
-                type="text"
-                required
-                value={editForm.name}
-                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                placeholder="Enter name"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Phone</label>
-              <Input
-                type="tel"
-                value={editForm.phone}
-                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                placeholder="Enter phone"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Area</label>
-              <Input
-                type="text"
-                value={editForm.area}
-                onChange={(e) => setEditForm({ ...editForm, area: e.target.value })}
-                placeholder="Enter area"
-              />
-            </div>
-            {editVendor?.type === "FINISHING" && (
-              <>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Rate per OT Chain (₹)</label>
-                  <NumericInput
-                    step="0.01"
-                    value={editForm.rateOt}
-                    onChange={(v) => setEditForm({ ...editForm, rateOt: v })}
-                    placeholder="Enter rate"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Rate per Medium Chain (₹)</label>
-                  <NumericInput
-                    step="0.01"
-                    value={editForm.rateMedium}
-                    onChange={(v) => setEditForm({ ...editForm, rateMedium: v })}
-                    placeholder="Enter rate"
-                  />
-                </div>
-              </>
-            )}
+            <div className="space-y-1.5"><label className="block text-sm font-medium">Name<span className="text-destructive ml-0.5">*</span></label><Input required value={ef.name} onChange={e => setEf(p => ({ ...p, name: e.target.value }))} /></div>
+            <div className="space-y-1.5"><label className="block text-sm font-medium">Phone</label><Input type="tel" value={ef.phone} onChange={e => setEf(p => ({ ...p, phone: e.target.value }))} /></div>
+            <div className="space-y-1.5"><label className="block text-sm font-medium">Area</label><Input value={ef.area} onChange={e => setEf(p => ({ ...p, area: e.target.value }))} /></div>
+            {edit?.type === "FINISHING" && (<>
+              <div className="space-y-1.5"><label className="block text-sm font-medium">Rate OT (₹)</label><NumericInput step="0.01" value={ef.rateOt} onChange={v => setEf(p => ({ ...p, rateOt: v }))} /></div>
+              <div className="space-y-1.5"><label className="block text-sm font-medium">Rate Medium (₹)</label><NumericInput step="0.01" value={ef.rateMedium} onChange={v => setEf(p => ({ ...p, rateMedium: v }))} /></div>
+            </>)}
           </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => setEditVendor(null)}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="gold" disabled={saving}>
-              {saving ? "Saving..." : "Save Changes"}
-            </Button>
+          <div className="flex justify-end gap-2 pt-1">
+            <Button type="button" variant="outline" onClick={() => setEdit(null)}>Cancel</Button>
+            <Button type="submit" variant="gold" disabled={saving}>{saving ? "Saving…" : "Save Changes"}</Button>
           </div>
         </form>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={deleteVendor !== null}
-        onClose={() => setDeleteVendor(null)}
-        title="Delete Vendor"
-      >
-        <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Are you sure you want to delete{" "}
-            <span className="font-semibold text-foreground">{deleteVendor?.name}</span>?
-            This action cannot be undone.
-          </p>
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setDeleteVendor(null)}>
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              onClick={handleDelete}
-              disabled={deleting}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              {deleting ? "Deleting..." : "Delete"}
-            </Button>
-          </div>
+      <Dialog open={del !== null} onClose={() => setDel(null)} title="Delete Vendor" description="This action cannot be undone.">
+        <p className="text-sm text-[hsl(var(--foreground-muted))] mb-5">Delete <span className="font-semibold text-foreground">{del?.name}</span>?</p>
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={() => setDel(null)}>Cancel</Button>
+          <Button variant="danger" onClick={doDelete} disabled={deleting}>{deleting ? "Deleting…" : "Delete"}</Button>
         </div>
       </Dialog>
     </div>

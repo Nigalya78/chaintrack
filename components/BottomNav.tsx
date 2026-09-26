@@ -3,52 +3,55 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { 
-  LayoutDashboard, 
-  ShoppingCart, 
-  Users, 
-  DollarSign,
-  Hammer,
-  Sparkles
+import {
+  LayoutDashboard, ShoppingCart, Hammer,
+  Sparkles, DollarSign, Package, Users,
+  Truck, Store, SlidersHorizontal,
 } from "lucide-react";
 
-const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Purchases", href: "/purchases", icon: ShoppingCart },
-  { name: "Labour Transactions", href: "/labour-transactions", icon: Hammer },
+const NAV = [
+  { name: "Home",      href: "/dashboard",              icon: LayoutDashboard },
+  { name: "Purchases", href: "/purchases",              icon: ShoppingCart },
+  { name: "Labour",    href: "/labour-transactions",    icon: Hammer },
   { name: "Finishing", href: "/finishing-transactions", icon: Sparkles },
-  { name: "Sales", href: "/sales", icon: DollarSign },
-  { name: "Inventory", href: "/inventory", icon: ShoppingCart },
-  { name: "Labourers", href: "/labour", icon: Users },
-  { name: "Vendors", href: "/vendors", icon: Users },
-  { name: "Shops", href: "/shops", icon: DollarSign },
-  { name: "Adjustments", href: "/adjustments", icon: LayoutDashboard },
+  { name: "Sales",     href: "/sales",                  icon: DollarSign },
+  { name: "Inventory", href: "/inventory",              icon: Package },
+  { name: "Labourers", href: "/labour",                 icon: Users },
+  { name: "Vendors",   href: "/vendors",                icon: Truck },
+  { name: "Shops",     href: "/shops",                  icon: Store },
+  { name: "Adjust",    href: "/adjustments",            icon: SlidersHorizontal },
 ];
 
 export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-border z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
-      <div className="flex items-center h-16 px-2 overflow-x-auto scrollbar-hide">
-        {navigation.map((item) => {
-          const isActive = pathname === item.href;
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={cn(
-                "flex flex-col items-center justify-center min-w-[72px] h-full py-2 rounded-lg transition-all duration-200 flex-shrink-0",
-                isActive
-                  ? "text-yellow-600 bg-yellow-50"
-                  : "text-muted-foreground hover:text-foreground hover:bg-gray-50"
-              )}
-            >
-              <item.icon className="h-6 w-6 mb-1" />
-              <span className="text-xs font-medium">{item.name}</span>
-            </Link>
-          );
-        })}
+    <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50">
+      {/* Frosted glass bar */}
+      <div className="bg-[hsl(var(--surface)/0.96)] backdrop-blur-md border-t border-border shadow-[0_-1px_0_0_hsl(var(--border))]">
+        <div
+          className="flex items-stretch h-[60px] overflow-x-auto scrollbar-hide px-1"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
+          {NAV.map(({ name, href, icon: Icon }) => {
+            const active = pathname === href;
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  "flex flex-col items-center justify-center gap-0.5 min-w-[58px] px-1 shrink-0 rounded-[var(--radius)] mx-0.5 my-1.5 transition-all duration-150",
+                  active
+                    ? "bg-[hsl(43,95%,50%)] text-black"
+                    : "text-[hsl(var(--foreground-muted))] hover:text-foreground hover:bg-accent"
+                )}
+              >
+                <Icon className="h-[18px] w-[18px]" />
+                <span className="text-[10px] font-semibold leading-none">{name}</span>
+              </Link>
+            );
+          })}
+        </div>
       </div>
     </nav>
   );

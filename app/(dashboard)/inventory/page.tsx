@@ -5,236 +5,122 @@ import { useSession } from "next-auth/react"
 import { Card } from "@/components/ui/Card"
 import { Button } from "@/components/ui/Button"
 import { NumericInput } from "@/components/ui/NumericInput"
+import { Package, Layers, Sparkles, Edit2 } from "lucide-react"
 
-type InventoryItem = {
-  type: string
-  quantity: number
-  unit: string
-}
-
-type OpeningBalance = {
-  kanniOtKg: number
-  kanniMediumKg: number
-  otChains: number
-  mediumChains: number
-}
+type InventoryItem = { type: string; quantity: number; unit: string }
 
 const CHAINS_PER_KG: Record<string, number> = { OT: 24, MEDIUM: 40 }
 
-// Human-readable labels and category groupings
-const INVENTORY_META: Record<string, { label: string; category: string; chainType?: string }> = {
-  KANNI_OT:            { label: "Kanni — OT",            category: "Raw Material (Kanni)", chainType: "OT" },
-  KANNI_MEDIUM:        { label: "Kanni — Medium",        category: "Raw Material (Kanni)", chainType: "MEDIUM" },
-  CHAIN_OT:            { label: "Chains — OT",           category: "Unfinished Chains" },
-  CHAIN_MEDIUM:        { label: "Chains — Medium",       category: "Unfinished Chains" },
-  FINISHED_CHAIN_OT:   { label: "Finished Chains — OT",  category: "Finished Chains" },
-  FINISHED_CHAIN_MEDIUM: { label: "Finished Chains — Medium", category: "Finished Chains" },
+const META: Record<string, { label: string; sub: string; icon: React.ReactNode; color: string; chainType?: string }> = {
+  KANNI_OT:             { label: "Kanni — OT",           sub: "Raw material",      icon: <Layers className="h-4 w-4" />,   color: "bg-amber-50 text-amber-600",   chainType: "OT" },
+  KANNI_MEDIUM:         { label: "Kanni — Medium",       sub: "Raw material",      icon: <Layers className="h-4 w-4" />,   color: "bg-amber-50 text-amber-600",   chainType: "MEDIUM" },
+  CHAIN_OT:             { label: "Chains — OT",          sub: "Unfinished",        icon: <Package className="h-4 w-4" />,  color: "bg-blue-50 text-blue-500" },
+  CHAIN_MEDIUM:         { label: "Chains — Medium",      sub: "Unfinished",        icon: <Package className="h-4 w-4" />,  color: "bg-blue-50 text-blue-500" },
+  FINISHED_CHAIN_OT:    { label: "Finished — OT",        sub: "Ready to sell",     icon: <Sparkles className="h-4 w-4" />, color: "bg-emerald-50 text-emerald-600" },
+  FINISHED_CHAIN_MEDIUM:{ label: "Finished — Medium",    sub: "Ready to sell",     icon: <Sparkles className="h-4 w-4" />, color: "bg-emerald-50 text-emerald-600" },
 }
 
-function formatKanniRow(item: InventoryItem) {
-  const meta = INVENTORY_META[item.type]
-  const chainType = meta?.chainType
-  const kg = Number(item.quantity)
-  if (!chainType) return { display: `${kg.toFixed(3)} kg`, secondary: null }
-
-  const cPerKg = CHAINS_PER_KG[chainType]
-  const chains = Math.floor(kg * cPerKg)
-  return {
-    display: `${kg.toFixed(3)} kg`,
-    secondary: `≈ ${chains.toLocaleString()} chains  (${cPerKg} chains/kg)`,
-  }
-}
+const ORDER = ["KANNI_OT","KANNI_MEDIUM","CHAIN_OT","CHAIN_MEDIUM","FINISHED_CHAIN_OT","FINISHED_CHAIN_MEDIUM"]
 
 export default function InventoryPage() {
   const { data: session } = useSession()
   const [inventory, setInventory] = useState<InventoryItem[]>([])
-  const [openingBalance, setOpeningBalance] = useState<OpeningBalance | null>(null)
   const [loading, setLoading] = useState(true)
-  const [showEditForm, setShowEditForm] = useState(false)
-  const [editForm, setEditForm] = useState({
-    kanniOtKg: "",
-    kanniMediumKg: "",
-    otChains: "",
-    mediumChains: "",
-  })
-  const [isSaving, setIsSaving] = useState(false)
+  const [showEdit, setShowEdit] = useState(false)
+  const [ef, setEf] = useState({ kanniOtKg: "", kanniMediumKg: "", otChains: "", mediumChains: "" })
+  const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    if (session?.user) {
-      loadInventory()
-      loadOpeningBalance()
-    }
-  }, [session])
+  useEffect(() => { if (session?.user) { loadInv(); loadOB() } }, [session])
 
-  async function loadInventory() {
-    try {
-      const response = await fetch("/api/inventory")
-      if (response.ok) {
-        const data = await response.json()
-        setInventory(data)
-      }
-    } catch (error) {
-      console.error("Failed to load inventory:", error)
-    } finally {
-      setLoading(false)
+  async function loadInv() {
+    const res = await fetch("/api/inventory")
+    if (res.ok) setInventory(await res.json())
+    setLoading(false)
+  }
+  async function loadOB() {
+    const res = await fetch("/api/opening-balance")
+    if (res.ok) {
+      const d = await res.json()
+      setEf({ kanniOtKg: String(d.kanniOtKg), kanniMediumKg: String(d.kanniMediumKg), otChains: String(d.otChains), mediumChains: String(d.mediumChains) })
     }
   }
-
-  async function loadOpeningBalance() {
-    try {
-      const response = await fetch("/api/opening-balance")
-      if (response.ok) {
-        const data = await response.json()
-        setOpeningBalance(data)
-        setEditForm({
-          kanniOtKg: data.kanniOtKg.toString(),
-          kanniMediumKg: data.kanniMediumKg.toString(),
-          otChains: data.otChains.toString(),
-          mediumChains: data.mediumChains.toString(),
-        })
-      }
-    } catch (error) {
-      console.error("Failed to load opening balance:", error)
-    }
-  }
-
-  async function handleSaveOpeningBalance(e: React.FormEvent) {
+  async function saveOB(e: React.FormEvent) {
     e.preventDefault()
-    setIsSaving(true)
-    try {
-      const response = await fetch("/api/opening-balance", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          kanniOtKg: parseFloat(editForm.kanniOtKg) || 0,
-          kanniMediumKg: parseFloat(editForm.kanniMediumKg) || 0,
-          otChains: parseInt(editForm.otChains) || 0,
-          mediumChains: parseInt(editForm.mediumChains) || 0,
-        }),
-      })
-      if (response.ok) {
-        setShowEditForm(false)
-        await Promise.all([loadOpeningBalance(), loadInventory()])
-      }
-    } catch (error) {
-      console.error("Failed to update opening balance:", error)
-      alert("Failed to update opening balance")
-    } finally {
-      setIsSaving(false)
-    }
+    setSaving(true)
+    const res = await fetch("/api/opening-balance", {
+      method: "PUT", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kanniOtKg: parseFloat(ef.kanniOtKg)||0, kanniMediumKg: parseFloat(ef.kanniMediumKg)||0, otChains: parseInt(ef.otChains)||0, mediumChains: parseInt(ef.mediumChains)||0 }),
+    })
+    if (res.ok) { setShowEdit(false); await Promise.all([loadInv(), loadOB()]) }
+    setSaving(false)
   }
 
-  if (loading) {
-    return <div className="p-8">Loading...</div>
-  }
+  if (loading) return <div className="p-8 text-sm text-[hsl(var(--foreground-muted))] animate-pulse">Loading…</div>
 
-  // Group inventory rows by category
-  const typeOrder = ["KANNI_OT", "KANNI_MEDIUM", "CHAIN_OT", "CHAIN_MEDIUM", "FINISHED_CHAIN_OT", "FINISHED_CHAIN_MEDIUM"]
-  const sorted = typeOrder
-    .map((t) => inventory.find((i) => i.type === t))
-    .filter(Boolean) as InventoryItem[]
+  const sorted = ORDER.map(t => inventory.find(i => i.type === t)).filter(Boolean) as InventoryItem[]
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Inventory</h1>
-          <p className="text-muted-foreground text-sm">View and manage your current stock levels</p>
+          <h1 className="text-2xl font-bold tracking-tight">Inventory</h1>
+          <p className="text-sm text-[hsl(var(--foreground-muted))] mt-0.5">Live stock levels across all categories</p>
         </div>
-        <Button onClick={() => setShowEditForm(!showEditForm)}>
-          {showEditForm ? "Cancel" : "Edit Opening Balance"}
+        <Button variant="outline" onClick={() => setShowEdit(!showEdit)}>
+          <Edit2 className="h-4 w-4" /> {showEdit ? "Cancel" : "Edit Opening Balance"}
         </Button>
       </div>
 
-      {showEditForm && (
+      {showEdit && (
         <Card title="Edit Opening Balance">
-          <form onSubmit={handleSaveOpeningBalance} className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Kanni OT (kg)</label>
-                <NumericInput
-                  step="0.001"
-                  value={editForm.kanniOtKg}
-                  onChange={(v) => setEditForm({ ...editForm, kanniOtKg: v })}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Kanni Medium (kg)</label>
-                <NumericInput
-                  step="0.001"
-                  value={editForm.kanniMediumKg}
-                  onChange={(v) => setEditForm({ ...editForm, kanniMediumKg: v })}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">OT Chains (pieces)</label>
-                <NumericInput
-                  allowDecimal={false}
-                  value={editForm.otChains}
-                  onChange={(v) => setEditForm({ ...editForm, otChains: v })}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Medium Chains (pieces)</label>
-                <NumericInput
-                  allowDecimal={false}
-                  value={editForm.mediumChains}
-                  onChange={(v) => setEditForm({ ...editForm, mediumChains: v })}
-                />
-              </div>
+          <form onSubmit={saveOB} className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5"><label className="block text-sm font-medium">Kanni OT (kg)</label><NumericInput step="0.001" value={ef.kanniOtKg} onChange={v => setEf(p => ({ ...p, kanniOtKg: v }))} /></div>
+              <div className="space-y-1.5"><label className="block text-sm font-medium">Kanni Medium (kg)</label><NumericInput step="0.001" value={ef.kanniMediumKg} onChange={v => setEf(p => ({ ...p, kanniMediumKg: v }))} /></div>
+              <div className="space-y-1.5"><label className="block text-sm font-medium">OT Chains</label><NumericInput allowDecimal={false} value={ef.otChains} onChange={v => setEf(p => ({ ...p, otChains: v }))} /></div>
+              <div className="space-y-1.5"><label className="block text-sm font-medium">Medium Chains</label><NumericInput allowDecimal={false} value={ef.mediumChains} onChange={v => setEf(p => ({ ...p, mediumChains: v }))} /></div>
             </div>
             <div className="flex gap-2">
-              <Button type="submit" variant="gold" disabled={isSaving}>
-                {isSaving ? "Saving..." : "Save Changes"}
-              </Button>
-              <Button type="button" variant="outline" onClick={() => setShowEditForm(false)}>
-                Cancel
-              </Button>
+              <Button type="submit" variant="gold" disabled={saving}>{saving ? "Saving…" : "Save Changes"}</Button>
+              <Button type="button" variant="outline" onClick={() => setShowEdit(false)}>Cancel</Button>
             </div>
           </form>
         </Card>
       )}
 
-      {/* Inventory cards grouped by category */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {sorted.map((item) => {
-          const meta = INVENTORY_META[item.type] ?? { label: item.type, category: "Other" }
-          const isKanni = item.type.startsWith("KANNI_")
+        {sorted.map(item => {
+          const m = META[item.type]
           const qty = Number(item.quantity)
-          const kanniInfo = isKanni ? formatKanniRow(item) : null
+          const isKanni = item.type.startsWith("KANNI_")
+          const chains = isKanni && m?.chainType ? Math.floor(qty * CHAINS_PER_KG[m.chainType]) : null
 
           return (
-            <div
-              key={item.type}
-              className="rounded-xl border border-border/50 bg-card shadow-sm p-4 flex flex-col gap-1"
-            >
-              <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                {meta.category}
+            <div key={item.type} className="bg-[hsl(var(--surface))] rounded-[var(--radius-xl)] border border-border shadow-[var(--shadow-sm)] p-4">
+              <div className="flex items-start justify-between gap-2 mb-3">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-[hsl(var(--foreground-muted))]">{m?.sub}</p>
+                  <p className="text-sm font-semibold text-foreground mt-0.5">{m?.label}</p>
+                </div>
+                <div className={`p-2 rounded-[var(--radius-sm)] shrink-0 ${m?.color}`}>{m?.icon}</div>
               </div>
-              <div className="text-sm font-semibold text-foreground mt-1">{meta.label}</div>
-              {isKanni && kanniInfo ? (
+              {isKanni ? (
                 <>
-                  <div className="text-2xl font-bold text-primary mt-1">
-                    {kanniInfo.display}
-                  </div>
-                  <div className="text-xs text-muted-foreground">{kanniInfo.secondary}</div>
+                  <p className="text-2xl font-bold text-foreground">{qty.toFixed(3)} <span className="text-sm font-normal text-[hsl(var(--foreground-muted))]">kg</span></p>
+                  <p className="text-xs text-[hsl(var(--foreground-muted))] mt-1">≈ {chains?.toLocaleString()} chains ({CHAINS_PER_KG[m?.chainType!]}/kg)</p>
                 </>
               ) : (
-                <div className="text-2xl font-bold text-primary mt-1">
-                  {qty.toLocaleString()}
-                  <span className="text-sm font-normal text-muted-foreground ml-1">pieces</span>
-                </div>
+                <p className="text-2xl font-bold text-foreground">{qty.toLocaleString()} <span className="text-sm font-normal text-[hsl(var(--foreground-muted))]">pcs</span></p>
               )}
             </div>
           )
         })}
       </div>
 
-      {/* Summary row */}
       {sorted.length === 0 && (
-        <Card title="Current Stock">
-          <p className="text-sm text-muted-foreground py-4 text-center">No inventory records found. Complete setup to initialize stock.</p>
-        </Card>
+        <div className="text-center py-12 text-sm text-[hsl(var(--foreground-muted))]">
+          No inventory records. Complete setup to initialise stock.
+        </div>
       )}
     </div>
   )

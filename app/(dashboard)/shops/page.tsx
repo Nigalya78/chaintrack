@@ -7,214 +7,82 @@ import { DataTable } from "@/components/ui/DataTable"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Dialog } from "@/components/ui/Dialog"
-import { Pencil, Trash2 } from "lucide-react"
 import { NumericInput } from "@/components/ui/NumericInput"
+import { S } from "@/lib/form-styles"
+import { Pencil, Trash2, Plus, X } from "lucide-react"
 
-type Shop = {
-  id: string
-  name: string
-  phone: string | null
-  area: string | null
-  rateOt: number | null
-  rateMedium: number | null
-  active: boolean
-}
-
-type FormData = {
-  name: string
-  phone: string
-  area: string
-  rateOt: string
-  rateMedium: string
-}
-
-const emptyForm: FormData = {
-  name: "",
-  phone: "",
-  area: "",
-  rateOt: "",
-  rateMedium: "",
-}
+type Shop = { id: string; name: string; phone: string|null; area: string|null; rateOt: number|null; rateMedium: number|null; active: boolean }
+type FD = { name: string; phone: string; area: string; rateOt: string; rateMedium: string }
+const empty: FD = { name: "", phone: "", area: "", rateOt: "", rateMedium: "" }
 
 export default function ShopsPage() {
   const { data: session } = useSession()
-  const [shops, setShops] = useState<Shop[]>([])
+  const [rows, setRows] = useState<Shop[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
-  const [formData, setFormData] = useState<FormData>(emptyForm)
-
-  const [editShop, setEditShop] = useState<Shop | null>(null)
-  const [editForm, setEditForm] = useState<FormData>(emptyForm)
+  const [fd, setFd] = useState<FD>(empty)
+  const [edit, setEdit] = useState<Shop|null>(null)
+  const [ef, setEf] = useState<FD>(empty)
   const [saving, setSaving] = useState(false)
-  const [deleteShop, setDeleteShop] = useState<Shop | null>(null)
+  const [del, setDel] = useState<Shop|null>(null)
   const [deleting, setDeleting] = useState(false)
 
-  useEffect(() => {
-    if (session?.user) {
-      loadShops()
-    }
-  }, [session])
+  useEffect(() => { if (session?.user) load() }, [session])
 
-  async function loadShops() {
-    try {
-      const response = await fetch("/api/shops")
-      if (response.ok) {
-        const data = await response.json()
-        setShops(data)
-      }
-    } catch (error) {
-      console.error("Failed to load shops:", error)
-    } finally {
-      setLoading(false)
-    }
+  async function load() {
+    const res = await fetch("/api/shops")
+    if (res.ok) setRows(await res.json())
+    setLoading(false)
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function create(e: React.FormEvent) {
     e.preventDefault()
-    try {
-      const response = await fetch("/api/shops", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          rateOt: formData.rateOt ? parseFloat(formData.rateOt) : null,
-          rateMedium: formData.rateMedium ? parseFloat(formData.rateMedium) : null,
-        }),
-      })
-
-      if (response.ok) {
-        setShowForm(false)
-        setFormData(emptyForm)
-        loadShops()
-      }
-    } catch (error) {
-      console.error("Failed to create shop:", error)
-    }
+    const res = await fetch("/api/shops", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...fd, rateOt: fd.rateOt ? parseFloat(fd.rateOt) : null, rateMedium: fd.rateMedium ? parseFloat(fd.rateMedium) : null }) })
+    if (res.ok) { setShowForm(false); setFd(empty); load() }
   }
 
-  function openEdit(shop: Shop) {
-    setEditShop(shop)
-    setEditForm({
-      name: shop.name,
-      phone: shop.phone ?? "",
-      area: shop.area ?? "",
-      rateOt: shop.rateOt != null ? String(shop.rateOt) : "",
-      rateMedium: shop.rateMedium != null ? String(shop.rateMedium) : "",
-    })
-  }
+  function openEdit(r: Shop) { setEdit(r); setEf({ name: r.name, phone: r.phone ?? "", area: r.area ?? "", rateOt: r.rateOt != null ? String(r.rateOt) : "", rateMedium: r.rateMedium != null ? String(r.rateMedium) : "" }) }
 
-  async function handleEditSubmit(e: React.FormEvent) {
+  async function update(e: React.FormEvent) {
     e.preventDefault()
-    if (!editShop) return
+    if (!edit) return
     setSaving(true)
-    try {
-      const response = await fetch(`/api/shops/${editShop.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: editForm.name,
-          phone: editForm.phone,
-          area: editForm.area,
-          rateOt: editForm.rateOt ? parseFloat(editForm.rateOt) : null,
-          rateMedium: editForm.rateMedium ? parseFloat(editForm.rateMedium) : null,
-        }),
-      })
-
-      if (response.ok) {
-        setEditShop(null)
-        loadShops()
-      }
-    } catch (error) {
-      console.error("Failed to update shop:", error)
-    } finally {
-      setSaving(false)
-    }
+    const res = await fetch(`/api/shops/${edit.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: ef.name, phone: ef.phone, area: ef.area, rateOt: ef.rateOt ? parseFloat(ef.rateOt) : null, rateMedium: ef.rateMedium ? parseFloat(ef.rateMedium) : null }) })
+    if (res.ok) { setEdit(null); load() }
+    setSaving(false)
   }
 
-  async function handleDelete() {
-    if (!deleteShop) return
+  async function doDelete() {
+    if (!del) return
     setDeleting(true)
-    try {
-      const response = await fetch(`/api/shops/${deleteShop.id}`, {
-        method: "DELETE",
-      })
-      if (response.ok) {
-        setDeleteShop(null)
-        loadShops()
-      }
-    } catch (error) {
-      console.error("Failed to delete shop:", error)
-    } finally {
-      setDeleting(false)
-    }
+    const res = await fetch(`/api/shops/${del.id}`, { method: "DELETE" })
+    if (res.ok) { setDel(null); load() }
+    setDeleting(false)
   }
 
-  if (loading) {
-    return <div className="p-8">Loading...</div>
-  }
+  if (loading) return <div className="p-8 text-sm text-[hsl(var(--foreground-muted))] animate-pulse">Loading…</div>
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Shops</h1>
-          <p className="text-muted-foreground">Manage your sales outlets</p>
+          <h1 className="text-2xl font-bold tracking-tight">Shops</h1>
+          <p className="text-sm text-[hsl(var(--foreground-muted))] mt-0.5">{rows.length} outlet{rows.length !== 1 ? "s" : ""}</p>
         </div>
-        <Button onClick={() => setShowForm(!showForm)}>
-          {showForm ? "Cancel" : "Add Shop"}
+        <Button variant="gold" onClick={() => setShowForm(!showForm)}>
+          {showForm ? <><X className="h-4 w-4"/>Cancel</> : <><Plus className="h-4 w-4"/>Add Shop</>}
         </Button>
       </div>
 
       {showForm && (
-        <Card title="Add New Shop">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Name</label>
-                <Input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Enter name"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Phone</label>
-                <Input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="Enter phone"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Area</label>
-                <Input
-                  type="text"
-                  value={formData.area}
-                  onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-                  placeholder="Enter area"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">OT Rate (per piece)</label>
-                <NumericInput
-                  step="0.01"
-                  value={formData.rateOt}
-                  onChange={(v) => setFormData({ ...formData, rateOt: v })}
-                  placeholder="Enter OT rate"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Medium Rate (per piece)</label>
-                <NumericInput
-                  step="0.01"
-                  value={formData.rateMedium}
-                  onChange={(v) => setFormData({ ...formData, rateMedium: v })}
-                  placeholder="Enter Medium rate"
-                />
-              </div>
+        <Card title="New Shop">
+          <form onSubmit={create} className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5"><label className="block text-sm font-medium">Name<span className="text-destructive ml-0.5">*</span></label><Input required value={fd.name} onChange={e => setFd(p => ({ ...p, name: e.target.value }))} placeholder="Shop name" /></div>
+              <div className="space-y-1.5"><label className="block text-sm font-medium">Phone</label><Input type="tel" value={fd.phone} onChange={e => setFd(p => ({ ...p, phone: e.target.value }))} placeholder="Optional" /></div>
+              <div className="space-y-1.5"><label className="block text-sm font-medium">Area</label><Input value={fd.area} onChange={e => setFd(p => ({ ...p, area: e.target.value }))} placeholder="City / area" /></div>
+              <div className="space-y-1.5"><label className="block text-sm font-medium">OT Rate (₹/piece)</label><NumericInput step="0.01" value={fd.rateOt} onChange={v => setFd(p => ({ ...p, rateOt: v }))} placeholder="Optional" /></div>
+              <div className="space-y-1.5"><label className="block text-sm font-medium">Medium Rate (₹/piece)</label><NumericInput step="0.01" value={fd.rateMedium} onChange={v => setFd(p => ({ ...p, rateMedium: v }))} placeholder="Optional" /></div>
             </div>
             <Button type="submit" variant="gold">Save Shop</Button>
           </form>
@@ -223,125 +91,41 @@ export default function ShopsPage() {
 
       <Card title="All Shops">
         <DataTable
-          columns={["Name", "Phone", "Area", "OT Rate", "Medium Rate", "Status", "Actions"]}
-          rows={shops.map((shop) => [
-            shop.name,
-            shop.phone || "-",
-            shop.area || "-",
-            shop.rateOt ? `Rs. ${shop.rateOt}` : "-",
-            shop.rateMedium ? `Rs. ${shop.rateMedium}` : "-",
-            shop.active ? "Active" : "Inactive",
-            <div key={shop.id} className="flex items-center gap-2">
-              <button
-                onClick={() => openEdit(shop)}
-                className="p-1.5 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                title="Edit"
-              >
-                <Pencil className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setDeleteShop(shop)}
-                className="p-1.5 rounded hover:bg-red-100 transition-colors text-muted-foreground hover:text-red-600"
-                title="Delete"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
+          columns={["Name", "Phone", "Area", "OT Rate", "Med Rate", "Status", ""]}
+          rows={rows.map(r => [
+            r.name, r.phone||"-", r.area||"-",
+            r.rateOt ? `₹${r.rateOt}` : "-",
+            r.rateMedium ? `₹${r.rateMedium}` : "-",
+            <span key={r.id} className={`inline-flex text-xs font-medium px-2 py-0.5 rounded-full ${r.active ? "bg-emerald-50 text-emerald-700" : "bg-[hsl(var(--muted))] text-[hsl(var(--foreground-muted))]"}`}>{r.active ? "Active" : "Inactive"}</span>,
+            <div key={r.id+"a"} className="flex items-center gap-1">
+              <button onClick={() => openEdit(r)} className={S.iconBtn} title="Edit"><Pencil className="h-3.5 w-3.5"/></button>
+              <button onClick={() => setDel(r)} className={S.iconBtnDanger} title="Delete"><Trash2 className="h-3.5 w-3.5"/></button>
             </div>,
           ])}
         />
       </Card>
 
-      {/* Edit Dialog */}
-      <Dialog
-        open={editShop !== null}
-        onClose={() => setEditShop(null)}
-        title="Edit Shop"
-      >
-        <form onSubmit={handleEditSubmit} className="space-y-4">
+      <Dialog open={edit !== null} onClose={() => setEdit(null)} title="Edit Shop">
+        <form onSubmit={update} className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Name</label>
-              <Input
-                type="text"
-                required
-                value={editForm.name}
-                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                placeholder="Enter name"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Phone</label>
-              <Input
-                type="tel"
-                value={editForm.phone}
-                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                placeholder="Enter phone"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Area</label>
-              <Input
-                type="text"
-                value={editForm.area}
-                onChange={(e) => setEditForm({ ...editForm, area: e.target.value })}
-                placeholder="Enter area"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">OT Rate (per piece)</label>
-              <NumericInput
-                step="0.01"
-                value={editForm.rateOt}
-                onChange={(v) => setEditForm({ ...editForm, rateOt: v })}
-                placeholder="Enter OT rate"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Medium Rate (per piece)</label>
-              <NumericInput
-                step="0.01"
-                value={editForm.rateMedium}
-                onChange={(v) => setEditForm({ ...editForm, rateMedium: v })}
-                placeholder="Enter Medium rate"
-              />
-            </div>
+            <div className="space-y-1.5"><label className="block text-sm font-medium">Name<span className="text-destructive ml-0.5">*</span></label><Input required value={ef.name} onChange={e => setEf(p => ({ ...p, name: e.target.value }))} /></div>
+            <div className="space-y-1.5"><label className="block text-sm font-medium">Phone</label><Input type="tel" value={ef.phone} onChange={e => setEf(p => ({ ...p, phone: e.target.value }))} /></div>
+            <div className="space-y-1.5"><label className="block text-sm font-medium">Area</label><Input value={ef.area} onChange={e => setEf(p => ({ ...p, area: e.target.value }))} /></div>
+            <div className="space-y-1.5"><label className="block text-sm font-medium">OT Rate (₹)</label><NumericInput step="0.01" value={ef.rateOt} onChange={v => setEf(p => ({ ...p, rateOt: v }))} /></div>
+            <div className="space-y-1.5"><label className="block text-sm font-medium">Medium Rate (₹)</label><NumericInput step="0.01" value={ef.rateMedium} onChange={v => setEf(p => ({ ...p, rateMedium: v }))} /></div>
           </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => setEditShop(null)}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="gold" disabled={saving}>
-              {saving ? "Saving..." : "Save Changes"}
-            </Button>
+          <div className="flex justify-end gap-2 pt-1">
+            <Button type="button" variant="outline" onClick={() => setEdit(null)}>Cancel</Button>
+            <Button type="submit" variant="gold" disabled={saving}>{saving ? "Saving…" : "Save Changes"}</Button>
           </div>
         </form>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={deleteShop !== null}
-        onClose={() => setDeleteShop(null)}
-        title="Delete Shop"
-      >
-        <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Are you sure you want to delete{" "}
-            <span className="font-semibold text-foreground">{deleteShop?.name}</span>?
-            This action cannot be undone.
-          </p>
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setDeleteShop(null)}>
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              onClick={handleDelete}
-              disabled={deleting}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              {deleting ? "Deleting..." : "Delete"}
-            </Button>
-          </div>
+      <Dialog open={del !== null} onClose={() => setDel(null)} title="Delete Shop" description="This action cannot be undone.">
+        <p className="text-sm text-[hsl(var(--foreground-muted))] mb-5">Delete <span className="font-semibold text-foreground">{del?.name}</span>?</p>
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={() => setDel(null)}>Cancel</Button>
+          <Button variant="danger" onClick={doDelete} disabled={deleting}>{deleting ? "Deleting…" : "Delete"}</Button>
         </div>
       </Dialog>
     </div>

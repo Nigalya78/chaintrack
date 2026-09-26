@@ -7,147 +7,85 @@ import { DataTable } from "@/components/ui/DataTable"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { NumericInput } from "@/components/ui/NumericInput"
-
-const SELECT_CLS = "w-full px-4 py-2.5 rounded-lg border border-border/50 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring hover:border-border transition-all duration-200"
+import { S } from "@/lib/form-styles"
+import { Plus, X } from "lucide-react"
 
 type Vendor = { id: string; name: string }
-
-type FinishingTransaction = {
-  id: string
-  vendorName: string
-  chainType: string
-  chainsGiven: number
-  finishedChainsReceived: number
-  ratePerPiece: number | null
-  transactionDate: string
-  notes: string | null
-}
+type FinishingTx = { id: string; vendorName: string; chainType: string; chainsGiven: number; finishedChainsReceived: number; ratePerPiece: number | null; transactionDate: string; notes: string | null }
 
 export default function FinishingTransactionsPage() {
   const { data: session } = useSession()
   const [vendors, setVendors] = useState<Vendor[]>([])
-  const [transactions, setTransactions] = useState<FinishingTransaction[]>([])
+  const [txs, setTxs] = useState<FinishingTx[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
-  const [formData, setFormData] = useState({
-    vendorId: "",
-    chainType: "OT",
-    chainsGiven: "",
-    finishedChainsReceived: "",
-    transactionDate: new Date().toISOString().slice(0, 10),
-    notes: "",
-  })
+  const [f, setF] = useState({ vendorId: "", chainType: "OT", chainsGiven: "", finishedChainsReceived: "", transactionDate: new Date().toISOString().slice(0, 10), notes: "" })
 
-  useEffect(() => {
-    if (session?.user) loadData()
-  }, [session])
+  useEffect(() => { if (session?.user) load() }, [session])
 
-  async function loadData() {
-    try {
-      const [vendorsRes, transactionsRes] = await Promise.all([
-        fetch("/api/finishing-vendors"),
-        fetch("/api/finishing-transactions"),
-      ])
-      if (vendorsRes.ok) setVendors(await vendorsRes.json())
-      if (transactionsRes.ok) setTransactions(await transactionsRes.json())
-    } catch (error) {
-      console.error("Failed to load data:", error)
-    } finally {
-      setLoading(false)
-    }
+  async function load() {
+    const [v, t] = await Promise.all([fetch("/api/finishing-vendors"), fetch("/api/finishing-transactions")])
+    if (v.ok) setVendors(await v.json())
+    if (t.ok) setTxs(await t.json())
+    setLoading(false)
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault()
-    try {
-      const response = await fetch("/api/finishing-transactions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          vendorId: formData.vendorId,
-          chainType: formData.chainType,
-          chainsGiven: parseInt(formData.chainsGiven),
-          finishedChainsReceived: parseInt(formData.finishedChainsReceived),
-          transactionDate: formData.transactionDate,
-          notes: formData.notes || null,
-        }),
-      })
-      if (response.ok) {
-        setShowForm(false)
-        setFormData({
-          vendorId: "", chainType: "OT", chainsGiven: "", finishedChainsReceived: "",
-          transactionDate: new Date().toISOString().slice(0, 10), notes: "",
-        })
-        loadData()
-      }
-    } catch (error) {
-      console.error("Failed to create transaction:", error)
-    }
+    const res = await fetch("/api/finishing-transactions", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ vendorId: f.vendorId, chainType: f.chainType, chainsGiven: parseInt(f.chainsGiven), finishedChainsReceived: parseInt(f.finishedChainsReceived), transactionDate: f.transactionDate, notes: f.notes || null }),
+    })
+    if (res.ok) { setShowForm(false); setF({ vendorId: "", chainType: "OT", chainsGiven: "", finishedChainsReceived: "", transactionDate: new Date().toISOString().slice(0, 10), notes: "" }); load() }
   }
 
-  if (loading) return <div className="p-8 text-muted-foreground text-sm">Loading...</div>
+  if (loading) return <div className="p-8 text-sm text-[hsl(var(--foreground-muted))] animate-pulse">Loading…</div>
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Finishing Transactions</h1>
-          <p className="text-muted-foreground text-sm">Record chains sent to and received from finishing vendors</p>
+          <h1 className="text-2xl font-bold tracking-tight">Finishing Transactions</h1>
+          <p className="text-sm text-[hsl(var(--foreground-muted))] mt-0.5">Chains sent to and received from finishing vendors</p>
         </div>
-        <Button onClick={() => setShowForm(!showForm)}>
-          {showForm ? "Cancel" : "Add Transaction"}
+        <Button variant="gold" onClick={() => setShowForm(!showForm)}>
+          {showForm ? <><X className="h-4 w-4" /> Cancel</> : <><Plus className="h-4 w-4" /> Add Transaction</>}
         </Button>
       </div>
 
       {showForm && (
-        <Card title="Add New Transaction">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Vendor</label>
-                <select required value={formData.vendorId}
-                  onChange={(e) => setFormData({ ...formData, vendorId: e.target.value })}
-                  className={SELECT_CLS}>
-                  <option value="">Select Vendor</option>
-                  {vendors.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
+        <Card title="New Finishing Transaction">
+          <form onSubmit={submit} className="space-y-5">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium">Vendor<span className="text-destructive ml-0.5">*</span></label>
+                <select required value={f.vendorId} onChange={e => setF(p => ({ ...p, vendorId: e.target.value }))} className={S.select}>
+                  <option value="">Select vendor</option>
+                  {vendors.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
                 </select>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Chain Type</label>
-                <select value={formData.chainType}
-                  onChange={(e) => setFormData({ ...formData, chainType: e.target.value })}
-                  className={SELECT_CLS}>
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium">Chain Type</label>
+                <select value={f.chainType} onChange={e => setF(p => ({ ...p, chainType: e.target.value }))} className={S.select}>
                   <option value="OT">OT</option>
                   <option value="MEDIUM">Medium</option>
                 </select>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Chains Given</label>
-                <NumericInput allowDecimal={false} required
-                  value={formData.chainsGiven}
-                  onChange={(v) => setFormData({ ...formData, chainsGiven: v })}
-                  placeholder="Chains sent to vendor"
-                />
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium">Chains Given<span className="text-destructive ml-0.5">*</span></label>
+                <NumericInput allowDecimal={false} required value={f.chainsGiven} onChange={v => setF(p => ({ ...p, chainsGiven: v }))} placeholder="Chains sent to vendor" />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Finished Chains Received</label>
-                <NumericInput allowDecimal={false} required
-                  value={formData.finishedChainsReceived}
-                  onChange={(v) => setFormData({ ...formData, finishedChainsReceived: v })}
-                  placeholder="Finished chains back"
-                />
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium">Finished Chains Received<span className="text-destructive ml-0.5">*</span></label>
+                <NumericInput allowDecimal={false} required value={f.finishedChainsReceived} onChange={v => setF(p => ({ ...p, finishedChainsReceived: v }))} placeholder="Finished chains back" />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Date</label>
-                <input type="date" required value={formData.transactionDate}
-                  onChange={(e) => setFormData({ ...formData, transactionDate: e.target.value })}
-                  className={SELECT_CLS} />
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium">Date<span className="text-destructive ml-0.5">*</span></label>
+                <input type="date" required value={f.transactionDate} onChange={e => setF(p => ({ ...p, transactionDate: e.target.value }))} className={S.date} />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Notes</label>
-                <Input type="text" value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  placeholder="Optional notes" />
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium">Notes</label>
+                <Input value={f.notes} onChange={e => setF(p => ({ ...p, notes: e.target.value }))} placeholder="Optional" />
               </div>
             </div>
             <Button type="submit" variant="gold">Save Transaction</Button>
@@ -155,16 +93,10 @@ export default function FinishingTransactionsPage() {
         </Card>
       )}
 
-      <Card title="Transaction History">
+      <Card title="Transaction History" subtitle={`${txs.length} record${txs.length !== 1 ? "s" : ""}`}>
         <DataTable
           columns={["Date", "Vendor", "Type", "Given", "Received"]}
-          rows={transactions.map((t) => [
-            t.transactionDate,
-            t.vendorName,
-            t.chainType,
-            t.chainsGiven,
-            t.finishedChainsReceived,
-          ])}
+          rows={txs.map(t => [t.transactionDate, t.vendorName, t.chainType, t.chainsGiven, t.finishedChainsReceived])}
         />
       </Card>
     </div>

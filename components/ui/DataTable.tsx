@@ -7,16 +7,16 @@ type DataTableProps = {
 
 export function DataTable({ columns, rows }: Readonly<DataTableProps>) {
   return (
-    <div className="overflow-x-auto -mx-5 px-5">
-      <table className="w-full min-w-full border-collapse">
+    <div className="overflow-x-auto -mx-5">
+      <table className="w-full min-w-full text-sm">
         <thead>
-          <tr className="border-b border-border/60">
-            {columns.map((column) => (
+          <tr className="border-b border-border/70 bg-[hsl(var(--muted)/0.5)]">
+            {columns.map((col) => (
               <th
-                key={column}
-                className="text-left py-3 px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap"
+                key={col}
+                className="text-left py-2.5 px-4 text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--foreground-muted))] whitespace-nowrap first:rounded-tl-none last:rounded-tr-none"
               >
-                {column}
+                {col}
               </th>
             ))}
           </tr>
@@ -26,31 +26,29 @@ export function DataTable({ columns, rows }: Readonly<DataTableProps>) {
             <tr>
               <td
                 colSpan={columns.length}
-                className="py-8 px-4 text-sm text-muted-foreground text-center"
+                className="py-10 text-center text-sm text-[hsl(var(--foreground-muted))]"
               >
                 No records yet.
               </td>
             </tr>
           ) : (
             rows.map((row, idx) => {
-              const firstPrimitive = row.find(
-                (value) => typeof value === "string" || typeof value === "number"
+              const first = row.find(
+                (v) => typeof v === "string" || typeof v === "number"
               );
-              const rowKey =
-                firstPrimitive === undefined
-                  ? `row-${idx}`
-                  : `row-${firstPrimitive}-${idx}`;
+              const key =
+                first === undefined ? `row-${idx}` : `row-${first}-${idx}`;
               return (
                 <tr
-                  key={rowKey}
-                  className="border-b border-border/40 last:border-0 hover:bg-muted/30 transition-colors"
+                  key={key}
+                  className="border-b border-border/40 last:border-0 hover:bg-[hsl(var(--muted)/0.35)] transition-colors duration-100"
                 >
-                  {row.map((value, cellIdx) => (
+                  {row.map((cell, ci) => (
                     <td
-                      key={`${idx}-${cellIdx}`}
-                      className="py-3 px-3 text-sm"
+                      key={`${idx}-${ci}`}
+                      className="py-3 px-4 text-sm text-foreground"
                     >
-                      {value}
+                      {cell}
                     </td>
                   ))}
                 </tr>
