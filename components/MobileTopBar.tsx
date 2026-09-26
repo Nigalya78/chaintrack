@@ -5,7 +5,6 @@ import { useSession } from "next-auth/react";
 import { signOut } from "next-auth/react";
 import { User, LogOut, Menu } from "lucide-react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 
 export function MobileTopBar() {
   const { data: session } = useSession();
@@ -55,7 +54,8 @@ export function MobileTopBar() {
           </button>
 
           {/* dark-logo */}
-          <Image src="/dark-logo.png" alt="ChainTrack" width={140} height={36} className="object-contain shrink-0" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/dark-logo.png" alt="ChainTrack" width={140} height={36} className="object-contain shrink-0" />
           {businessName && (
             <span className="text-[10px] text-[hsl(214,15%,50%)] truncate leading-none hidden sm:block border-l border-[hsl(214,32%,26%)] pl-2.5 ml-0.5">{businessName}</span>
           )}

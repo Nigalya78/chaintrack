@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import Image from "next/image"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { NumericInput } from "@/components/ui/NumericInput"
@@ -105,7 +104,8 @@ export default function SetupPage() {
         {/* ── Header ── */}
         <div className="text-center space-y-1 pt-2">
           <div className="flex justify-center mb-4">
-            <Image src="/logo.png" alt="ChainTrack" width={180} height={180} className="object-contain" priority />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="ChainTrack" width={180} height={180} className="object-contain" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-[hsl(214,32%,17%)]">Business Setup</h1>
           <p className="text-sm text-[hsl(214,18%,46%)]">Get your account ready in 5 quick steps</p>

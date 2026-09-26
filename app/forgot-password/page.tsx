@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 
@@ -44,7 +43,8 @@ export default function ForgotPasswordPage() {
 
         {/* Logo */}
         <div className="flex justify-center">
-          <Image src="/logo.png" alt="ChainTrack" width={200} height={160} className="object-contain" priority />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="ChainTrack" width={200} height={160} className="object-contain" />
         </div>
 
         {/* Card */}
