@@ -82,6 +82,27 @@ export const { handlers, auth } = NextAuth({
     signIn: "/login",
   },
   callbacks: {
+    async authorized({ auth: session, request }) {
+      const { pathname } = request.nextUrl
+      const isLoggedIn = !!session?.user
+
+      // Public pages — always allow
+      const publicPages = ["/login", "/register", "/forgot-password"]
+      if (publicPages.some((p) => pathname.startsWith(p))) {
+        // If already logged in, bounce away from login/register to dashboard
+        if (isLoggedIn && (pathname.startsWith("/login") || pathname.startsWith("/register"))) {
+          return Response.redirect(new URL("/dashboard", request.nextUrl))
+        }
+        return true
+      }
+
+      // Everything else requires a session
+      if (!isLoggedIn) {
+        return false // NextAuth will redirect to the signIn page (/login)
+      }
+
+      return true
+    },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id
