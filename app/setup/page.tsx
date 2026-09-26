@@ -104,8 +104,8 @@ export default function SetupPage() {
 
         {/* ── Header ── */}
         <div className="text-center space-y-1 pt-2">
-          <div className="flex justify-center mb-3">
-            <div className="relative w-48 h-16">
+          <div className="flex justify-center mb-4">
+            <div className="relative w-44 h-44">
               <Image src="/logo.png" alt="ChainTrack" fill className="object-contain" priority />
             </div>
           </div>
