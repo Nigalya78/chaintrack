@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { signIn } from "next-auth/react"
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { PasswordInput } from "@/components/ui/PasswordInput"
@@ -45,27 +46,32 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--background))] p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[hsl(var(--background))] p-4">
       <div className="w-full max-w-[400px] space-y-8">
 
-        {/* Brand */}
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-[var(--radius-lg)] bg-gradient-to-b from-[hsl(43,95%,56%)] to-[hsl(43,95%,44%)] shadow-[var(--shadow-md)] mb-1">
-            <span className="text-xl font-black text-black">C</span>
+        {/* Logo + brand */}
+        <div className="flex flex-col items-center gap-3">
+          <div className="relative w-24 h-24">
+            <Image src="/logo.png" alt="ChainTrack" fill className="object-contain" priority />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">ChainTrack</h1>
-          <p className="text-sm text-[hsl(var(--foreground-muted))]">Chain production &amp; inventory management</p>
+          <div className="text-center">
+            <h1 className="text-2xl font-bold tracking-tight text-[hsl(214,32%,17%)]">
+              Chain<span className="text-[#C9922A]">Track</span>
+            </h1>
+            <p className="text-[11px] uppercase tracking-widest text-[hsl(214,18%,50%)] mt-0.5">
+              Jewellery Inventory &amp; Production Management
+            </p>
+          </div>
         </div>
 
         {/* Card */}
-        <div className="bg-[hsl(var(--surface))] rounded-[var(--radius-xl)] border border-border shadow-[var(--shadow-lg)] overflow-hidden">
-          {/* Card header */}
-          <div className="px-6 pt-6 pb-5 border-b border-border/60">
-            <h2 className="text-[15px] font-semibold text-foreground">Sign in to your account</h2>
+        <div className="bg-white rounded-[var(--radius-xl)] border border-[hsl(38,20%,86%)] shadow-[var(--shadow-lg)] overflow-hidden">
+          {/* Card header — brand navy stripe */}
+          <div className="px-6 pt-5 pb-4 border-b border-[hsl(38,20%,90%)] bg-[hsl(214,32%,14%)]">
+            <h2 className="text-[15px] font-semibold text-white">Sign in to your account</h2>
           </div>
 
-          {/* Form */}
-          <div className="px-6 py-5">
+          <div className="px-6 py-6">
             <form onSubmit={handleSubmit} className="space-y-4">
               {globalError && (
                 <div className="rounded-[var(--radius)] bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
@@ -74,39 +80,30 @@ export default function LoginPage() {
               )}
 
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-foreground" htmlFor="email">
+                <label className="block text-sm font-medium text-[hsl(214,32%,17%)]" htmlFor="email">
                   Email
                 </label>
                 <Input
-                  id="email"
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  placeholder="you@example.com"
-                  autoComplete="email"
+                  id="email" type="email" name="email"
+                  value={formData.email} onChange={handleChange}
+                  disabled={isLoading} placeholder="you@example.com" autoComplete="email"
                 />
                 {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
               </div>
 
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="block text-sm font-medium text-foreground" htmlFor="password">
+                  <label className="block text-sm font-medium text-[hsl(214,32%,17%)]" htmlFor="password">
                     Password
                   </label>
-                  <Link href="/forgot-password" className="text-xs text-[hsl(var(--primary))] hover:underline underline-offset-2">
+                  <Link href="/forgot-password" className="text-xs text-[#C9922A] hover:underline underline-offset-2">
                     Forgot password?
                   </Link>
                 </div>
                 <PasswordInput
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  placeholder="••••••••"
-                  autoComplete="current-password"
+                  id="password" name="password"
+                  value={formData.password} onChange={handleChange}
+                  disabled={isLoading} placeholder="••••••••" autoComplete="current-password"
                 />
                 {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
               </div>
@@ -118,10 +115,9 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Footer */}
-        <p className="text-center text-sm text-[hsl(var(--foreground-muted))]">
+        <p className="text-center text-sm text-[hsl(214,18%,46%)]">
           Don&apos;t have an account?{" "}
-          <Link href="/register" className="font-medium text-foreground hover:underline underline-offset-2">
+          <Link href="/register" className="font-semibold text-[hsl(214,32%,17%)] hover:underline underline-offset-2">
             Create one
           </Link>
         </p>

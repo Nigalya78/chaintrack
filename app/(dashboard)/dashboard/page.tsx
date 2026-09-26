@@ -23,7 +23,8 @@ type DashboardStats = {
   chainDistribution: { name: string; value: number }[]
 }
 
-const PIE_COLORS = ["#EAB308", "#3B82F6"]
+// Brand gold + brand navy for charts
+const PIE_COLORS = ["#C9922A", "#1E2A3A"]
 
 /* ── Custom tooltip for bar chart ─────────────────────── */
 function BarTooltip({ active, payload, label }: any) {
@@ -137,14 +138,14 @@ export default function DashboardPage() {
         <div className="bg-[hsl(var(--surface))] rounded-[var(--radius-xl)] border border-border shadow-[var(--shadow-sm)] p-5">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--foreground-muted))]">OT Chain Stock</p>
-            <div className="p-2 bg-[hsl(43,95%,94%)] rounded-[var(--radius-sm)]">
-              <Package className="h-3.5 w-3.5 text-[hsl(43,80%,42%)]" />
+            <div className="p-2 bg-[hsl(38,66%,92%)] rounded-[var(--radius-sm)]">
+              <Package className="h-3.5 w-3.5 text-[#C9922A]" />
             </div>
           </div>
           <p className="text-3xl font-bold tracking-tight">{stats.stockOT.toLocaleString()}</p>
           <p className="text-xs text-[hsl(var(--foreground-muted))] mt-1">finished chains available</p>
           <div className="mt-3 h-1.5 w-full bg-[hsl(var(--muted))] rounded-full overflow-hidden">
-            <div className="h-full bg-[hsl(43,95%,50%)] rounded-full" style={{ width: `${Math.min(100, stats.stockOT > 0 ? 60 : 0)}%` }} />
+            <div className="h-full bg-[#C9922A] rounded-full" style={{ width: `${Math.min(100, stats.stockOT > 0 ? 60 : 0)}%` }} />
           </div>
         </div>
         <div className="bg-[hsl(var(--surface))] rounded-[var(--radius-xl)] border border-border shadow-[var(--shadow-sm)] p-5">
@@ -179,7 +180,7 @@ export default function DashboardPage() {
                 <YAxis tick={{ fontSize: 10, fill: "hsl(222,14%,46%)" }} axisLine={false} tickLine={false} width={48}
                   tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
                 <Tooltip content={<BarTooltip />} cursor={{ fill: "hsl(220,15%,95%)" }} />
-                <Bar dataKey="amount" fill="hsl(43,95%,50%)" radius={[4,4,0,0]} maxBarSize={40} />
+                <Bar dataKey="amount" fill="#C9922A" radius={[4,4,0,0]} maxBarSize={40} />
               </BarChart>
             </ResponsiveContainer>
           </div>

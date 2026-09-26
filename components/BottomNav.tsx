@@ -4,9 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard, ShoppingCart, Hammer,
-  Sparkles, DollarSign, Package, Users,
-  Truck, Store, SlidersHorizontal,
+  LayoutDashboard, ShoppingCart, Hammer, Sparkles,
+  DollarSign, Package, Users, Truck, Store, SlidersHorizontal,
 } from "lucide-react";
 
 const NAV = [
@@ -27,8 +26,7 @@ export function BottomNav() {
 
   return (
     <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50">
-      {/* Frosted glass bar */}
-      <div className="bg-[hsl(var(--surface)/0.96)] backdrop-blur-md border-t border-border shadow-[0_-1px_0_0_hsl(var(--border))]">
+      <div className="bg-[hsl(214,32%,14%)] border-t border-[hsl(214,32%,22%)] shadow-[0_-2px_8px_0_rgb(0,0,0,0.2)]">
         <div
           className="flex items-stretch h-[60px] overflow-x-auto scrollbar-hide px-1"
           style={{ WebkitOverflowScrolling: "touch" }}
@@ -42,12 +40,12 @@ export function BottomNav() {
                 className={cn(
                   "flex flex-col items-center justify-center gap-0.5 min-w-[58px] px-1 shrink-0 rounded-[var(--radius)] mx-0.5 my-1.5 transition-all duration-150",
                   active
-                    ? "bg-[hsl(43,95%,50%)] text-black"
-                    : "text-[hsl(var(--foreground-muted))] hover:text-foreground hover:bg-accent"
+                    ? "bg-[#C9922A] text-white"
+                    : "text-[hsl(214,15%,55%)] hover:text-white hover:bg-[hsl(214,32%,22%)]"
                 )}
               >
-                <Icon className="h-[18px] w-[18px]" />
-                <span className="text-[10px] font-semibold leading-none">{name}</span>
+                <Icon className="h-[17px] w-[17px]" />
+                <span className="text-[9.5px] font-semibold leading-none">{name}</span>
               </Link>
             );
           })}

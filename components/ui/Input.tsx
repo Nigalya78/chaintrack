@@ -17,50 +17,25 @@ type InputProps = {
   readOnly?: boolean;
 };
 
-const inputBase = [
-  "w-full px-3.5 py-2.5 rounded-[var(--radius)] border border-border bg-[hsl(var(--surface))]",
-  "text-sm text-foreground placeholder:text-[hsl(var(--foreground-muted))]",
+// Shared base — used by Input, NumericInput, PasswordInput, Select
+export const inputBase = [
+  "w-full px-3.5 py-2.5 rounded-[var(--radius)] border border-border bg-white",
+  "text-sm text-foreground placeholder:text-[hsl(214,18%,60%)]",
   "outline-none transition-all duration-150",
-  "hover:border-[hsl(var(--border-strong))]",
-  "focus:border-[hsl(var(--primary))] focus:ring-2 focus:ring-[hsl(var(--ring)/0.2)]",
+  "hover:border-[#C9922A]/50",
+  "focus:border-[#C9922A] focus:ring-2 focus:ring-[#C9922A]/20",
   "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted",
   "read-only:bg-muted read-only:cursor-default",
 ].join(" ");
 
-export function Input({
-  type = "text",
-  placeholder,
-  value,
-  onChange,
-  disabled = false,
-  required = false,
-  step,
-  min,
-  max,
-  name,
-  id,
-  autoComplete,
-  className,
-  readOnly,
-}: Readonly<InputProps>) {
+export function Input({ type = "text", placeholder, value, onChange, disabled = false,
+  required = false, step, min, max, name, id, autoComplete, className, readOnly }: Readonly<InputProps>) {
   return (
     <input
-      type={type}
-      placeholder={placeholder}
-      value={value}
-      onChange={onChange}
-      disabled={disabled}
-      required={required}
-      step={step}
-      min={min}
-      max={max}
-      name={name}
-      id={id}
-      autoComplete={autoComplete}
-      readOnly={readOnly}
+      type={type} placeholder={placeholder} value={value} onChange={onChange}
+      disabled={disabled} required={required} step={step} min={min} max={max}
+      name={name} id={id} autoComplete={autoComplete} readOnly={readOnly}
       className={cn(inputBase, className)}
     />
   );
 }
-
-export { inputBase };

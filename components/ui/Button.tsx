@@ -57,11 +57,12 @@ export function Button({
           "hover:bg-muted/70 shadow-[var(--shadow-xs)]",
         ],
         variant === "gold" && [
-          "bg-gradient-to-b from-[hsl(43,95%,56%)] to-[hsl(43,95%,46%)] text-[hsl(var(--primary-foreground))]",
-          "shadow-[0_1px_0_0_hsl(43,95%,38%),var(--shadow-sm)]",
-          "hover:from-[hsl(43,95%,60%)] hover:to-[hsl(43,95%,50%)]",
-          "active:from-[hsl(43,95%,44%)] active:to-[hsl(43,95%,40%)]",
-          "border border-[hsl(43,80%,42%)/30]",
+          // exact brand gold #C9922A
+          "bg-gradient-to-b from-[#D9A23A] to-[#C9922A] text-white font-semibold",
+          "shadow-[0_1px_0_0_#9A6B18,var(--shadow-sm)]",
+          "hover:from-[#E0AA42] hover:to-[#D49A30]",
+          "active:from-[#BB8422] active:to-[#B07A18]",
+          "border border-[#9A6B18]/20",
         ],
         variant === "danger" && [
           "bg-destructive text-destructive-foreground",

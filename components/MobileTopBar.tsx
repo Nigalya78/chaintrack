@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { signOut } from "next-auth/react";
 import { User, LogOut, Menu } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export function MobileTopBar() {
   const { data: session } = useSession();
@@ -14,10 +15,10 @@ export function MobileTopBar() {
   useEffect(() => {
     const cached = localStorage.getItem("businessName");
     if (cached) setBusinessName(cached);
-    if (session?.user && !cached) fetchBusinessName();
+    if (session?.user && !cached) fetchBusiness();
   }, [session]);
 
-  async function fetchBusinessName() {
+  async function fetchBusiness() {
     try {
       const res = await fetch("/api/business");
       if (res.ok) {
@@ -40,38 +41,40 @@ export function MobileTopBar() {
 
   return (
     <div className="lg:hidden sticky top-0 z-50 -mx-4 sm:-mx-6">
-      <div className="bg-[hsl(var(--surface)/0.96)] backdrop-blur-md border-b border-border px-4 h-14 flex items-center justify-between gap-3 shadow-[var(--shadow-xs)]">
-        {/* Left: hamburger + brand */}
+      {/* Brand navy top bar */}
+      <div className="bg-[hsl(214,32%,14%)] border-b border-[hsl(214,32%,22%)] px-4 h-14 flex items-center justify-between gap-3 shadow-[var(--shadow-sm)]">
+
+        {/* Left: hamburger + logo + name */}
         <div className="flex items-center gap-2.5 min-w-0">
           <button
             onClick={toggleSidebar}
-            className="shrink-0 p-1.5 rounded-[var(--radius-sm)] text-[hsl(var(--foreground-muted))] hover:text-foreground hover:bg-accent transition-colors"
+            className="shrink-0 p-1.5 rounded-[var(--radius-sm)] text-[hsl(214,15%,55%)] hover:text-white hover:bg-[hsl(214,32%,22%)] transition-colors"
             aria-label="Open menu"
           >
             <Menu className="h-5 w-5" />
           </button>
-          <div className="min-w-0">
-            <p className="text-[14px] font-bold text-foreground leading-none tracking-tight">ChainTrack</p>
-            {businessName && (
-              <p className="text-[11px] text-[hsl(var(--foreground-muted))] truncate mt-0.5 leading-none">
-                {businessName}
-              </p>
-            )}
+
+          {/* dark-logo on navy background */}
+          <div className="relative w-28 h-8 shrink-0">
+            <Image src="/dark-logo.png" alt="ChainTrack" fill className="object-contain object-left" />
           </div>
+          {businessName && (
+            <p className="text-[10px] text-[hsl(214,15%,55%)] truncate leading-none hidden sm:block">{businessName}</p>
+          )}
         </div>
 
-        {/* Right: actions */}
+        {/* Right: profile + signout */}
         <div className="flex items-center gap-0.5 shrink-0">
           <button
             onClick={() => router.push("/profile")}
-            className="p-2 rounded-[var(--radius-sm)] text-[hsl(var(--foreground-muted))] hover:text-foreground hover:bg-accent transition-colors"
+            className="p-2 rounded-[var(--radius-sm)] text-[hsl(214,15%,55%)] hover:text-white hover:bg-[hsl(214,32%,22%)] transition-colors"
             aria-label="Profile"
           >
             <User className="h-4 w-4" />
           </button>
           <button
             onClick={handleSignOut}
-            className="p-2 rounded-[var(--radius-sm)] text-[hsl(var(--foreground-muted))] hover:text-destructive hover:bg-red-50 transition-colors"
+            className="p-2 rounded-[var(--radius-sm)] text-[hsl(214,15%,55%)] hover:text-red-400 hover:bg-red-950/30 transition-colors"
             aria-label="Sign out"
           >
             <LogOut className="h-4 w-4" />

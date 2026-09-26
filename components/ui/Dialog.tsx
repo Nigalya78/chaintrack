@@ -13,30 +13,16 @@ type DialogProps = {
   className?: string;
 };
 
-export function Dialog({
-  open,
-  onClose,
-  title,
-  description,
-  children,
-  className,
-}: Readonly<DialogProps>) {
+export function Dialog({ open, onClose, title, description, children, className }: Readonly<DialogProps>) {
   useEffect(() => {
-    if (open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
+    if (open) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "";
+    return () => { document.body.style.overflow = ""; };
   }, [open]);
 
   useEffect(() => {
     if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [open, onClose]);
@@ -46,11 +32,7 @@ export function Dialog({
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/40 backdrop-blur-[2px]"
-        onClick={onClose}
-        aria-hidden
-      />
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px]" onClick={onClose} aria-hidden />
 
       {/* Panel */}
       <div
@@ -58,26 +40,23 @@ export function Dialog({
         aria-modal
         className={cn(
           "relative z-50 w-full sm:max-w-lg",
-          "bg-[hsl(var(--surface))] border border-border",
+          "bg-white border border-border",
           "rounded-t-[var(--radius-xl)] sm:rounded-[var(--radius-xl)]",
-          "shadow-[var(--shadow-xl)]",
-          "overflow-hidden",
+          "shadow-[var(--shadow-xl)] overflow-hidden",
           className
         )}
       >
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4 px-5 pt-5 pb-4 border-b border-border/60">
+        {/* Header — navy */}
+        <div className="flex items-start justify-between gap-4 px-5 pt-4 pb-3.5 bg-[hsl(214,32%,17%)]">
           <div>
-            <h2 className="text-[15px] font-semibold text-foreground">{title}</h2>
+            <h2 className="text-[15px] font-semibold text-white">{title}</h2>
             {description && (
-              <p className="text-sm text-[hsl(var(--foreground-muted))] mt-0.5">
-                {description}
-              </p>
+              <p className="text-[12px] text-[hsl(214,15%,60%)] mt-0.5">{description}</p>
             )}
           </div>
           <button
             onClick={onClose}
-            className="shrink-0 p-1 rounded-[var(--radius-sm)] text-[hsl(var(--foreground-muted))] hover:text-foreground hover:bg-accent transition-colors mt-0.5"
+            className="shrink-0 p-1 rounded-[var(--radius-sm)] text-[hsl(214,15%,55%)] hover:text-white hover:bg-[hsl(214,32%,25%)] transition-colors mt-0.5"
             aria-label="Close"
           >
             <X className="h-4 w-4" />

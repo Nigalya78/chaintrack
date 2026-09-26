@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { NumericInput } from "@/components/ui/NumericInput"
@@ -103,11 +104,13 @@ export default function SetupPage() {
 
         {/* ── Header ── */}
         <div className="text-center space-y-1 pt-2">
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-[var(--radius)] bg-gradient-to-b from-[hsl(43,95%,56%)] to-[hsl(43,95%,44%)] shadow-[var(--shadow-sm)] mb-2">
-            <span className="text-lg font-black text-black">C</span>
+          <div className="flex justify-center mb-3">
+            <div className="relative w-48 h-16">
+              <Image src="/logo.png" alt="ChainTrack" fill className="object-contain" priority />
+            </div>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">Business Setup</h1>
-          <p className="text-sm text-[hsl(var(--foreground-muted))]">Get your account ready in 5 quick steps</p>
+          <h1 className="text-2xl font-bold tracking-tight text-[hsl(214,32%,17%)]">Business Setup</h1>
+          <p className="text-sm text-[hsl(214,18%,46%)]">Get your account ready in 5 quick steps</p>
         </div>
 
         {/* ── Progress stepper ── */}
@@ -141,9 +144,9 @@ export default function SetupPage() {
         {/* ── Step panels ── */}
         <div className="bg-[hsl(var(--surface))] rounded-[var(--radius-xl)] border border-border shadow-[var(--shadow-sm)] overflow-hidden">
 
-          {/* Step header */}
-          <div className="px-6 py-4 border-b border-border/60 bg-[hsl(var(--muted)/0.3)]">
-            <h2 className="font-semibold text-[15px]">
+          {/* Step header — navy bar */}
+          <div className="px-6 py-4 border-b border-[hsl(38,20%,88%)] bg-[hsl(214,32%,17%)]">
+            <h2 className="font-semibold text-[15px] text-white">
               Step {step}: {STEP_LABELS[step - 1]}
             </h2>
           </div>

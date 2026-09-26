@@ -10,11 +10,11 @@ export function DataTable({ columns, rows }: Readonly<DataTableProps>) {
     <div className="overflow-x-auto -mx-5">
       <table className="w-full min-w-full text-sm">
         <thead>
-          <tr className="border-b border-border/70 bg-[hsl(var(--muted)/0.5)]">
+          <tr className="bg-[hsl(214,32%,17%)]">
             {columns.map((col) => (
               <th
                 key={col}
-                className="text-left py-2.5 px-4 text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--foreground-muted))] whitespace-nowrap first:rounded-tl-none last:rounded-tr-none"
+                className="text-left py-2.5 px-4 text-[10px] font-semibold uppercase tracking-wider text-[hsl(214,15%,68%)] whitespace-nowrap"
               >
                 {col}
               </th>
@@ -33,21 +33,15 @@ export function DataTable({ columns, rows }: Readonly<DataTableProps>) {
             </tr>
           ) : (
             rows.map((row, idx) => {
-              const first = row.find(
-                (v) => typeof v === "string" || typeof v === "number"
-              );
-              const key =
-                first === undefined ? `row-${idx}` : `row-${first}-${idx}`;
+              const first = row.find((v) => typeof v === "string" || typeof v === "number");
+              const key = first === undefined ? `row-${idx}` : `row-${first}-${idx}`;
               return (
                 <tr
                   key={key}
-                  className="border-b border-border/40 last:border-0 hover:bg-[hsl(var(--muted)/0.35)] transition-colors duration-100"
+                  className="border-b border-border/40 last:border-0 hover:bg-[hsl(38,66%,97%)] transition-colors duration-100"
                 >
                   {row.map((cell, ci) => (
-                    <td
-                      key={`${idx}-${ci}`}
-                      className="py-3 px-4 text-sm text-foreground"
-                    >
+                    <td key={`${idx}-${ci}`} className="py-3 px-4 text-sm text-foreground">
                       {cell}
                     </td>
                   ))}
