@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Card } from "@/components/ui/Card"
+import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 
@@ -9,26 +10,28 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState("")
+  const [isError, setIsError] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setIsLoading(true)
     setMessage("")
-
+    setIsError(false)
     try {
-      const response = await fetch("/api/forgot-password", {
+      const res = await fetch("/api/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       })
-
-      if (response.ok) {
-        setMessage("If an account exists with this email, you will receive password reset instructions.")
+      if (res.ok) {
+        setMessage("If an account exists with this email, you will receive reset instructions.")
         setEmail("")
       } else {
+        setIsError(true)
         setMessage("Something went wrong. Please try again.")
       }
-    } catch (error) {
+    } catch {
+      setIsError(true)
       setMessage("Something went wrong. Please try again.")
     } finally {
       setIsLoading(false)
@@ -36,44 +39,55 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md space-y-6">
-        <div className="text-center">
-          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-yellow-500 via-yellow-400 to-yellow-500 bg-clip-text text-transparent">
-            Chain Track
-          </h1>
-          <p className="text-muted-foreground mt-2 text-sm sm:text-base">Reset your password</p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[hsl(var(--background))] p-4">
+      <div className="w-full max-w-[400px] space-y-8">
+
+        {/* Logo — light bg */}
+        <div className="flex flex-col items-center gap-3">
+          <div className="relative w-24 h-24">
+            <Image src="/logo.png" alt="ChainTrack" fill className="object-contain" priority />
+          </div>
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-[hsl(214,32%,17%)]">
+              Chain<span className="text-[#C9922A]">Track</span>
+            </h1>
+          </div>
         </div>
-        <Card title="Forgot Password">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Email</label>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoading}
-                placeholder="Enter your email"
-                required
-              />
-            </div>
 
-            <Button type="submit" variant="gold" className="w-full" disabled={isLoading}>
-              {isLoading ? "Sending..." : "Send Reset Link"}
-            </Button>
+        {/* Card */}
+        <div className="bg-white rounded-[var(--radius-xl)] border border-border shadow-[var(--shadow-lg)] overflow-hidden">
+          <div className="px-6 pt-5 pb-4 border-b border-border/60 bg-[hsl(214,32%,17%)]">
+            <h2 className="text-[15px] font-semibold text-white">Reset your password</h2>
+            <p className="text-[11px] text-[hsl(214,15%,60%)] mt-0.5">Enter your email to receive a reset link</p>
+          </div>
+          <div className="px-6 py-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-[hsl(214,32%,17%)]">Email</label>
+                <Input
+                  type="email" value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading} placeholder="you@example.com" required
+                />
+              </div>
+              <Button type="submit" variant="gold" className="w-full" disabled={isLoading}>
+                {isLoading ? "Sending…" : "Send Reset Link"}
+              </Button>
+              {message && (
+                <p className={`text-sm text-center ${isError ? "text-destructive" : "text-emerald-600"}`}>
+                  {message}
+                </p>
+              )}
+            </form>
+          </div>
+        </div>
 
-            {message && (
-              <p className="text-sm text-center text-muted-foreground">{message}</p>
-            )}
-
-            <p className="text-sm text-center text-muted-foreground">
-              Remember your password?{" "}
-              <a href="/login" className="text-primary hover:underline">
-                Sign in
-              </a>
-            </p>
-          </form>
-        </Card>
+        <p className="text-center text-sm text-[hsl(214,18%,46%)]">
+          Remember your password?{" "}
+          <Link href="/login" className="font-semibold text-[hsl(214,32%,17%)] hover:underline underline-offset-2">
+            Sign in
+          </Link>
+        </p>
       </div>
     </div>
   )
