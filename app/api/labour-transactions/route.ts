@@ -2,11 +2,12 @@ export const dynamic = 'force-dynamic'
 
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { getToken } from "next-auth/jwt"
+import { auth } from "@/lib/auth"
 
 export async function GET(request: Request) {
   try {
-    const token = await getToken({ req: request as any, secret: process.env.NEXTAUTH_SECRET })
+    const session = await auth()
+    const token = session?.user as any
     
     if (!token?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -54,7 +55,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const token = await getToken({ req: request as any, secret: process.env.NEXTAUTH_SECRET })
+    const session = await auth()
+    const token = session?.user as any
     
     if (!token?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
