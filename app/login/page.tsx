@@ -37,8 +37,14 @@ export default function LoginPage() {
         setIsLoading(false)
         return
       }
+      if (!result?.ok) {
+        setGlobalError("Sign in failed. Please try again.")
+        setIsLoading(false)
+        return
+      }
       window.location.href = "/dashboard"
-    } catch {
+    } catch (err) {
+      console.error("Login error:", err)
       setGlobalError("Invalid email or password.")
       setIsLoading(false)
     }
