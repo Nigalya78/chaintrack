@@ -39,44 +39,54 @@ export function MobileTopBar() {
   }
 
   return (
-    <div className="w-full">
-      <div className="bg-[hsl(214,32%,14%)] border-b border-[hsl(214,32%,22%)] px-3 h-14 flex items-center justify-between gap-2 shadow-sm">
+    <div className="w-full bg-[hsl(214,32%,14%)] border-b border-[hsl(214,32%,22%)] shadow-sm">
+      <div className="h-14 px-3 flex items-center justify-between gap-2">
 
-        {/* Left: hamburger + logo + name */}
-        <div className="flex items-center gap-2.5 min-w-0">
+        {/* Left — hamburger + brand */}
+        <div className="flex items-center gap-2 min-w-0">
+          {/* Hamburger */}
           <button
             onClick={toggleSidebar}
-            className="shrink-0 p-1.5 rounded-[var(--radius-sm)] text-[hsl(214,15%,55%)] hover:text-white hover:bg-[hsl(214,32%,22%)] transition-colors"
+            className="shrink-0 w-10 h-10 flex items-center justify-center rounded-lg text-[hsl(214,15%,60%)] hover:text-white hover:bg-[hsl(214,32%,22%)] transition-colors active:scale-95"
             aria-label="Open menu"
           >
             <Menu className="h-5 w-5" />
           </button>
 
-          {/* dark-logo — constrained for mobile */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/dark-logo.png"
-            alt="ChainTrack"
-            style={{ height: "32px", width: "auto", maxWidth: "130px" }}
-            className="object-contain shrink-0"
-          />
-          {businessName && (
-            <span className="text-[10px] text-[hsl(214,15%,50%)] truncate leading-none hidden sm:block border-l border-[hsl(214,32%,26%)] pl-2.5 ml-0.5">{businessName}</span>
-          )}
+          {/* Logo mark + "ChainTrack" text — always visible */}
+          <div className="flex items-center gap-2 min-w-0">
+            {/* Small logo mark only */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/dark-logo.png"
+              alt=""
+              aria-hidden
+              style={{ height: "28px", width: "auto", maxWidth: "100px" }}
+              className="object-contain shrink-0"
+            />
+            <div className="min-w-0">
+              <p className="text-[13px] font-bold text-white leading-tight tracking-tight">
+                Chain<span className="text-[#C9922A]">Track</span>
+              </p>
+              {businessName && (
+                <p className="text-[9px] text-[hsl(214,15%,50%)] truncate leading-tight">{businessName}</p>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* Right: profile + signout */}
+        {/* Right — actions */}
         <div className="flex items-center gap-0.5 shrink-0">
           <button
             onClick={() => router.push("/profile")}
-            className="p-2 rounded-[var(--radius-sm)] text-[hsl(214,15%,55%)] hover:text-white hover:bg-[hsl(214,32%,22%)] transition-colors"
+            className="w-10 h-10 flex items-center justify-center rounded-lg text-[hsl(214,15%,60%)] hover:text-white hover:bg-[hsl(214,32%,22%)] transition-colors active:scale-95"
             aria-label="Profile"
           >
             <User className="h-4 w-4" />
           </button>
           <button
             onClick={handleSignOut}
-            className="p-2 rounded-[var(--radius-sm)] text-[hsl(214,15%,55%)] hover:text-red-400 hover:bg-red-950/30 transition-colors"
+            className="w-10 h-10 flex items-center justify-center rounded-lg text-[hsl(214,15%,60%)] hover:text-red-400 hover:bg-red-950/30 transition-colors active:scale-95"
             aria-label="Sign out"
           >
             <LogOut className="h-4 w-4" />

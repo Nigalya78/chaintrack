@@ -7,7 +7,7 @@ type DataTableProps = {
 
 export function DataTable({ columns, rows }: Readonly<DataTableProps>) {
   return (
-    <div className="overflow-x-auto -mx-3 sm:-mx-5">
+    <div className="overflow-x-auto -mx-3 sm:-mx-4 lg:-mx-5">
       <table className="w-full min-w-full text-sm">
         <thead>
           <tr className="bg-[hsl(214,32%,17%)]">
@@ -41,10 +41,10 @@ export function DataTable({ columns, rows }: Readonly<DataTableProps>) {
                   className="border-b border-border/40 last:border-0 hover:bg-[hsl(38,66%,97%)] transition-colors duration-100"
                 >
                   {row.map((cell, ci) => (
-                    <td
-                      key={`${idx}-${ci}`}
-                      className="py-2.5 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm text-foreground"
-                    >
+                  <td
+                    key={`${idx}-${ci}`}
+                    className="py-2.5 px-3 sm:px-4 text-xs sm:text-sm text-foreground"
+                  >
                       {cell}
                     </td>
                   ))}

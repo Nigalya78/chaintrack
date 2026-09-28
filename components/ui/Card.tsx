@@ -31,7 +31,7 @@ export function Card({ title, subtitle, children, className, action, noPadding }
           {action && <div className="shrink-0">{action}</div>}
         </div>
       )}
-      <div className={cn(!noPadding && "p-3 sm:p-5")}>{children}</div>
+      <div className={cn(!noPadding && "p-3 sm:p-4 lg:p-5")}>{children}</div>
     </section>
   );
 }
