@@ -7,14 +7,14 @@ type DataTableProps = {
 
 export function DataTable({ columns, rows }: Readonly<DataTableProps>) {
   return (
-    <div className="overflow-x-auto -mx-5">
+    <div className="overflow-x-auto -mx-3 sm:-mx-5">
       <table className="w-full min-w-full text-sm">
         <thead>
           <tr className="bg-[hsl(214,32%,17%)]">
             {columns.map((col) => (
               <th
                 key={col}
-                className="text-left py-2.5 px-4 text-[10px] font-semibold uppercase tracking-wider text-[hsl(214,15%,68%)] whitespace-nowrap"
+                className="text-left py-2.5 px-3 sm:px-4 text-[10px] font-semibold uppercase tracking-wider text-[hsl(214,15%,68%)] whitespace-nowrap"
               >
                 {col}
               </th>
@@ -26,7 +26,7 @@ export function DataTable({ columns, rows }: Readonly<DataTableProps>) {
             <tr>
               <td
                 colSpan={columns.length}
-                className="py-10 text-center text-sm text-[hsl(var(--foreground-muted))]"
+                className="py-8 text-center text-sm text-[hsl(var(--foreground-muted))]"
               >
                 No records yet.
               </td>
@@ -41,7 +41,10 @@ export function DataTable({ columns, rows }: Readonly<DataTableProps>) {
                   className="border-b border-border/40 last:border-0 hover:bg-[hsl(38,66%,97%)] transition-colors duration-100"
                 >
                   {row.map((cell, ci) => (
-                    <td key={`${idx}-${ci}`} className="py-3 px-4 text-sm text-foreground">
+                    <td
+                      key={`${idx}-${ci}`}
+                      className="py-2.5 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm text-foreground"
+                    >
                       {cell}
                     </td>
                   ))}

@@ -6,12 +6,13 @@ import { Card } from "@/components/ui/Card"
 import { DataTable } from "@/components/ui/DataTable"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
+import { PageHeader } from "@/components/ui/PageHeader"
 import { NumericInput } from "@/components/ui/NumericInput"
 import { S } from "@/lib/form-styles"
 import { Plus, X } from "lucide-react"
 
 type Labourer = { id: string; name: string; rateOt: number | null; rateMedium: number | null }
-type LabourTx = { id: string; labourerName: string; chainType: string; chainsGiven: number; chainsReceived: number; ratePerPiece: number | null; amountGiven: number | null; transactionDate: string; notes: string | null }
+type LabourTx = { id: string; labourerName: string; chainType: string; chainsGiven: number; chainsReceived: number; ratePerPiece: number | null; amountGiven: number | null; transactionDate: string }
 
 export default function LabourTransactionsPage() {
   const { data: session } = useSession()
@@ -21,7 +22,7 @@ export default function LabourTransactionsPage() {
   const [showForm, setShowForm] = useState(false)
   const [f, setF] = useState({ labourerId: "", chainType: "OT", chainsGiven: "", chainsReceived: "", transactionDate: new Date().toISOString().slice(0, 10), notes: "" })
 
-  const sel  = labourers.find(l => l.id === f.labourerId)
+  const sel = labourers.find(l => l.id === f.labourerId)
   const rate = sel ? (f.chainType === "OT" ? sel.rateOt : sel.rateMedium) : null
   const amtPrev = rate && f.chainsReceived ? (rate * parseInt(f.chainsReceived)).toFixed(2) : null
 
@@ -36,31 +37,24 @@ export default function LabourTransactionsPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    const res = await fetch("/api/labour-transactions", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ labourerId: f.labourerId, chainType: f.chainType, chainsGiven: parseInt(f.chainsGiven), chainsReceived: parseInt(f.chainsReceived), transactionDate: f.transactionDate, notes: f.notes || null }),
-    })
+    const res = await fetch("/api/labour-transactions", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ labourerId: f.labourerId, chainType: f.chainType, chainsGiven: parseInt(f.chainsGiven), chainsReceived: parseInt(f.chainsReceived), transactionDate: f.transactionDate, notes: f.notes || null }) })
     if (res.ok) { setShowForm(false); setF({ labourerId: "", chainType: "OT", chainsGiven: "", chainsReceived: "", transactionDate: new Date().toISOString().slice(0, 10), notes: "" }); load() }
   }
 
-  if (loading) return <div className="p-8 text-sm text-[hsl(var(--foreground-muted))] animate-pulse">Loading…</div>
+  if (loading) return <div className="p-6 text-sm text-[hsl(var(--foreground-muted))] animate-pulse">Loading…</div>
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Labour Transactions</h1>
-          <p className="text-sm text-[hsl(var(--foreground-muted))] mt-0.5">Chains given to and received from labourers</p>
-        </div>
-        <Button variant="gold" onClick={() => setShowForm(!showForm)}>
-          {showForm ? <><X className="h-4 w-4" /> Cancel</> : <><Plus className="h-4 w-4" /> Add Transaction</>}
-        </Button>
-      </div>
+    <div>
+      <PageHeader title="Labour" subtitle="Chains given to and received from labourers"
+        action={<Button variant="gold" size="sm" onClick={() => setShowForm(!showForm)}>
+          {showForm ? <><X className="h-4 w-4"/>Cancel</> : <><Plus className="h-4 w-4"/>Add</>}
+        </Button>} />
 
       {showForm && (
-        <Card title="New Labour Transaction">
-          <form onSubmit={submit} className="space-y-5">
-            <div className="grid gap-4 sm:grid-cols-2">
+        <Card title="New Labour Transaction" className="mb-4">
+          <form onSubmit={submit} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <label className="block text-sm font-medium">Labourer<span className="text-destructive ml-0.5">*</span></label>
                 <select required value={f.labourerId} onChange={e => setF(p => ({ ...p, labourerId: e.target.value }))} className={S.select}>
@@ -76,12 +70,12 @@ export default function LabourTransactionsPage() {
                 </select>
               </div>
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium">Chains Given<span className="text-destructive ml-0.5">*</span></label>
-                <NumericInput allowDecimal={false} required value={f.chainsGiven} onChange={v => setF(p => ({ ...p, chainsGiven: v }))} placeholder="Chains sent to labourer" />
+                <label className="block text-sm font-medium">Given<span className="text-destructive ml-0.5">*</span></label>
+                <NumericInput allowDecimal={false} required value={f.chainsGiven} onChange={v => setF(p => ({ ...p, chainsGiven: v }))} placeholder="Chains sent" />
               </div>
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium">Chains Received<span className="text-destructive ml-0.5">*</span></label>
-                <NumericInput allowDecimal={false} required value={f.chainsReceived} onChange={v => setF(p => ({ ...p, chainsReceived: v }))} placeholder="Chains received back" />
+                <label className="block text-sm font-medium">Received<span className="text-destructive ml-0.5">*</span></label>
+                <NumericInput allowDecimal={false} required value={f.chainsReceived} onChange={v => setF(p => ({ ...p, chainsReceived: v }))} placeholder="Chains back" />
               </div>
               <div className="space-y-1.5">
                 <label className="block text-sm font-medium">Date<span className="text-destructive ml-0.5">*</span></label>
@@ -94,19 +88,19 @@ export default function LabourTransactionsPage() {
             </div>
             {rate != null && (
               <div className={S.infoBanner + " space-y-0.5"}>
-                <p><span className="font-semibold">Rate:</span> ₹{rate} per {f.chainType} chain</p>
-                {amtPrev && <p><span className="font-semibold">Labour Amount:</span> ₹{amtPrev} <span className="opacity-70">({f.chainsReceived} received × ₹{rate})</span></p>}
+                <p className="text-xs"><span className="font-semibold">Rate:</span> ₹{rate}/{f.chainType} chain</p>
+                {amtPrev && <p className="text-xs"><span className="font-semibold">Amount:</span> ₹{amtPrev}</p>}
               </div>
             )}
-            <Button type="submit" variant="gold">Save Transaction</Button>
+            <Button type="submit" variant="gold" size="sm">Save</Button>
           </form>
         </Card>
       )}
 
-      <Card title="Transaction History" subtitle={`${txs.length} record${txs.length !== 1 ? "s" : ""}`}>
+      <Card title="Transaction History" subtitle={`${txs.length} records`}>
         <DataTable
-          columns={["Date", "Labourer", "Type", "Given", "Received", "Rate", "Amount"]}
-          rows={txs.map(t => [t.transactionDate, t.labourerName, t.chainType, t.chainsGiven, t.chainsReceived, t.ratePerPiece ? `₹${Number(t.ratePerPiece).toFixed(2)}` : "-", t.amountGiven ? `₹${Number(t.amountGiven).toLocaleString()}` : "-"])}
+          columns={["Date", "Labourer", "Type", "Given", "Recv", "Amt"]}
+          rows={txs.map(t => [t.transactionDate, t.labourerName, t.chainType, t.chainsGiven, t.chainsReceived, t.amountGiven ? `₹${Number(t.amountGiven).toLocaleString()}` : "-"])}
         />
       </Card>
     </div>

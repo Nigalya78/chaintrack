@@ -7,6 +7,7 @@ import { DataTable } from "@/components/ui/DataTable"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Dialog } from "@/components/ui/Dialog"
+import { PageHeader } from "@/components/ui/PageHeader"
 import { NumericInput } from "@/components/ui/NumericInput"
 import { Select } from "@/components/ui/Select"
 import { S } from "@/lib/form-styles"
@@ -38,7 +39,8 @@ export default function VendorsPage() {
 
   async function create(e: React.FormEvent) {
     e.preventDefault()
-    const res = await fetch("/api/vendors", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...fd, rateOt: fd.rateOt ? parseFloat(fd.rateOt) : null, rateMedium: fd.rateMedium ? parseFloat(fd.rateMedium) : null }) })
+    const res = await fetch("/api/vendors", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...fd, rateOt: fd.rateOt ? parseFloat(fd.rateOt) : null, rateMedium: fd.rateMedium ? parseFloat(fd.rateMedium) : null }) })
     if (res.ok) { setShowForm(false); setFd(empty); load() }
   }
 
@@ -48,7 +50,8 @@ export default function VendorsPage() {
     e.preventDefault()
     if (!edit) return
     setSaving(true)
-    const res = await fetch(`/api/vendors/${edit.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: edit.type, name: ef.name, phone: ef.phone, area: ef.area, rateOt: ef.rateOt ? parseFloat(ef.rateOt) : null, rateMedium: ef.rateMedium ? parseFloat(ef.rateMedium) : null }) })
+    const res = await fetch(`/api/vendors/${edit.id}`, { method: "PUT", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: edit.type, name: ef.name, phone: ef.phone, area: ef.area, rateOt: ef.rateOt ? parseFloat(ef.rateOt) : null, rateMedium: ef.rateMedium ? parseFloat(ef.rateMedium) : null }) })
     if (res.ok) { setEdit(null); load() }
     setSaving(false)
   }
@@ -61,24 +64,19 @@ export default function VendorsPage() {
     setDeleting(false)
   }
 
-  if (loading) return <div className="p-8 text-sm text-[hsl(var(--foreground-muted))] animate-pulse">Loading…</div>
+  if (loading) return <div className="p-6 text-sm text-[hsl(var(--foreground-muted))] animate-pulse">Loading…</div>
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Vendors</h1>
-          <p className="text-sm text-[hsl(var(--foreground-muted))] mt-0.5">Suppliers and finishing vendors</p>
-        </div>
-        <Button variant="gold" onClick={() => setShowForm(!showForm)}>
-          {showForm ? <><X className="h-4 w-4"/>Cancel</> : <><Plus className="h-4 w-4"/>Add Vendor</>}
-        </Button>
-      </div>
+    <div>
+      <PageHeader title="Vendors" subtitle="Suppliers and finishing vendors"
+        action={<Button variant="gold" size="sm" onClick={() => setShowForm(!showForm)}>
+          {showForm ? <><X className="h-4 w-4"/>Cancel</> : <><Plus className="h-4 w-4"/>Add</>}
+        </Button>} />
 
       {showForm && (
-        <Card title="New Vendor">
+        <Card title="New Vendor" className="mb-4">
           <form onSubmit={create} className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <label className="block text-sm font-medium">Vendor Type</label>
                 <Select value={fd.type} onChange={e => setFd(p => ({ ...p, type: e.target.value as "SUPPLIER"|"FINISHING" }))}>
@@ -90,21 +88,21 @@ export default function VendorsPage() {
               <div className="space-y-1.5"><label className="block text-sm font-medium">Phone</label><Input type="tel" value={fd.phone} onChange={e => setFd(p => ({ ...p, phone: e.target.value }))} placeholder="Optional" /></div>
               <div className="space-y-1.5"><label className="block text-sm font-medium">Area</label><Input value={fd.area} onChange={e => setFd(p => ({ ...p, area: e.target.value }))} placeholder="Optional" /></div>
               {fd.type === "FINISHING" && (<>
-                <div className="space-y-1.5"><label className="block text-sm font-medium">Rate per OT Chain (₹)</label><NumericInput step="0.01" value={fd.rateOt} onChange={v => setFd(p => ({ ...p, rateOt: v }))} /></div>
-                <div className="space-y-1.5"><label className="block text-sm font-medium">Rate per Medium Chain (₹)</label><NumericInput step="0.01" value={fd.rateMedium} onChange={v => setFd(p => ({ ...p, rateMedium: v }))} /></div>
+                <div className="space-y-1.5"><label className="block text-sm font-medium">OT Rate (₹)</label><NumericInput step="0.01" value={fd.rateOt} onChange={v => setFd(p => ({ ...p, rateOt: v }))} /></div>
+                <div className="space-y-1.5"><label className="block text-sm font-medium">Medium Rate (₹)</label><NumericInput step="0.01" value={fd.rateMedium} onChange={v => setFd(p => ({ ...p, rateMedium: v }))} /></div>
               </>)}
             </div>
-            <Button type="submit" variant="gold">Save Vendor</Button>
+            <Button type="submit" variant="gold" size="sm">Save Vendor</Button>
           </form>
         </Card>
       )}
 
       <Card title="All Vendors">
         <DataTable
-          columns={["Type", "Name", "Phone", "Area", "OT Rate", "Med Rate", ""]}
+          columns={["Type", "Name", "Phone", "OT ₹", "Med ₹", ""]}
           rows={rows.map(r => [
-            <span key={r.id} className={`inline-flex text-xs font-medium px-2 py-0.5 rounded-full ${r.type === "FINISHING" ? "bg-violet-50 text-violet-700" : "bg-blue-50 text-blue-700"}`}>{r.type === "FINISHING" ? "Finishing" : "Supplier"}</span>,
-            r.name, r.phone||"-", r.area||"-",
+            <span key={r.id} className={`inline-flex text-[10px] font-medium px-1.5 py-0.5 rounded-full ${r.type === "FINISHING" ? "bg-violet-50 text-violet-700" : "bg-blue-50 text-blue-700"}`}>{r.type === "FINISHING" ? "Finishing" : "Supplier"}</span>,
+            r.name, r.phone || "-",
             r.rateOt ? `₹${r.rateOt}` : "-",
             r.rateMedium ? `₹${r.rateMedium}` : "-",
             <div key={r.id+"a"} className="flex items-center gap-1">
@@ -116,28 +114,28 @@ export default function VendorsPage() {
       </Card>
 
       <Dialog open={edit !== null} onClose={() => setEdit(null)} title={`Edit ${edit?.type === "FINISHING" ? "Finishing Vendor" : "Supplier"}`}>
-        <form onSubmit={update} className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
+        <form onSubmit={update} className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5"><label className="block text-sm font-medium">Name<span className="text-destructive ml-0.5">*</span></label><Input required value={ef.name} onChange={e => setEf(p => ({ ...p, name: e.target.value }))} /></div>
             <div className="space-y-1.5"><label className="block text-sm font-medium">Phone</label><Input type="tel" value={ef.phone} onChange={e => setEf(p => ({ ...p, phone: e.target.value }))} /></div>
             <div className="space-y-1.5"><label className="block text-sm font-medium">Area</label><Input value={ef.area} onChange={e => setEf(p => ({ ...p, area: e.target.value }))} /></div>
             {edit?.type === "FINISHING" && (<>
-              <div className="space-y-1.5"><label className="block text-sm font-medium">Rate OT (₹)</label><NumericInput step="0.01" value={ef.rateOt} onChange={v => setEf(p => ({ ...p, rateOt: v }))} /></div>
-              <div className="space-y-1.5"><label className="block text-sm font-medium">Rate Medium (₹)</label><NumericInput step="0.01" value={ef.rateMedium} onChange={v => setEf(p => ({ ...p, rateMedium: v }))} /></div>
+              <div className="space-y-1.5"><label className="block text-sm font-medium">OT Rate (₹)</label><NumericInput step="0.01" value={ef.rateOt} onChange={v => setEf(p => ({ ...p, rateOt: v }))} /></div>
+              <div className="space-y-1.5"><label className="block text-sm font-medium">Medium Rate (₹)</label><NumericInput step="0.01" value={ef.rateMedium} onChange={v => setEf(p => ({ ...p, rateMedium: v }))} /></div>
             </>)}
           </div>
           <div className="flex justify-end gap-2 pt-1">
-            <Button type="button" variant="outline" onClick={() => setEdit(null)}>Cancel</Button>
-            <Button type="submit" variant="gold" disabled={saving}>{saving ? "Saving…" : "Save Changes"}</Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => setEdit(null)}>Cancel</Button>
+            <Button type="submit" variant="gold" size="sm" disabled={saving}>{saving ? "Saving…" : "Save"}</Button>
           </div>
         </form>
       </Dialog>
 
-      <Dialog open={del !== null} onClose={() => setDel(null)} title="Delete Vendor" description="This action cannot be undone.">
-        <p className="text-sm text-[hsl(var(--foreground-muted))] mb-5">Delete <span className="font-semibold text-foreground">{del?.name}</span>?</p>
+      <Dialog open={del !== null} onClose={() => setDel(null)} title="Delete Vendor" description="This cannot be undone.">
+        <p className="text-sm text-[hsl(var(--foreground-muted))] mb-4">Delete <span className="font-semibold text-foreground">{del?.name}</span>?</p>
         <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={() => setDel(null)}>Cancel</Button>
-          <Button variant="danger" onClick={doDelete} disabled={deleting}>{deleting ? "Deleting…" : "Delete"}</Button>
+          <Button variant="outline" size="sm" onClick={() => setDel(null)}>Cancel</Button>
+          <Button variant="danger" size="sm" onClick={doDelete} disabled={deleting}>{deleting ? "Deleting…" : "Delete"}</Button>
         </div>
       </Dialog>
     </div>

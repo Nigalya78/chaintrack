@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/Card"
 import { DataTable } from "@/components/ui/DataTable"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
+import { PageHeader } from "@/components/ui/PageHeader"
 import { Plus, X } from "lucide-react"
 
 type Supplier = { id: string; name: string; phone: string; area: string|null }
@@ -31,38 +32,30 @@ export default function SuppliersPage() {
     if (res.ok) { setShowForm(false); setFd({ name: "", phone: "", area: "" }); load() }
   }
 
-  if (loading) return <div className="p-8 text-sm text-[hsl(var(--foreground-muted))] animate-pulse">Loading…</div>
+  if (loading) return <div className="p-6 text-sm text-[hsl(var(--foreground-muted))] animate-pulse">Loading…</div>
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Suppliers</h1>
-          <p className="text-sm text-[hsl(var(--foreground-muted))] mt-0.5">Raw material suppliers</p>
-        </div>
-        <Button variant="gold" onClick={() => setShowForm(!showForm)}>
-          {showForm ? <><X className="h-4 w-4"/>Cancel</> : <><Plus className="h-4 w-4"/>Add Supplier</>}
-        </Button>
-      </div>
+    <div>
+      <PageHeader title="Suppliers" subtitle="Raw material suppliers"
+        action={<Button variant="gold" size="sm" onClick={() => setShowForm(!showForm)}>
+          {showForm ? <><X className="h-4 w-4"/>Cancel</> : <><Plus className="h-4 w-4"/>Add</>}
+        </Button>} />
 
       {showForm && (
-        <Card title="New Supplier">
+        <Card title="New Supplier" className="mb-4">
           <form onSubmit={create} className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5"><label className="block text-sm font-medium">Name<span className="text-destructive ml-0.5">*</span></label><Input required value={fd.name} onChange={e => setFd(p => ({ ...p, name: e.target.value }))} placeholder="Supplier name" /></div>
               <div className="space-y-1.5"><label className="block text-sm font-medium">Phone<span className="text-destructive ml-0.5">*</span></label><Input type="tel" required value={fd.phone} onChange={e => setFd(p => ({ ...p, phone: e.target.value }))} placeholder="Phone number" /></div>
               <div className="space-y-1.5 sm:col-span-2"><label className="block text-sm font-medium">Area</label><Input value={fd.area} onChange={e => setFd(p => ({ ...p, area: e.target.value }))} placeholder="City / area (optional)" /></div>
             </div>
-            <Button type="submit" variant="gold">Save Supplier</Button>
+            <Button type="submit" variant="gold" size="sm">Save Supplier</Button>
           </form>
         </Card>
       )}
 
       <Card title="All Suppliers">
-        <DataTable
-          columns={["Name", "Phone", "Area"]}
-          rows={rows.map(r => [r.name, r.phone, r.area || "-"])}
-        />
+        <DataTable columns={["Name", "Phone", "Area"]} rows={rows.map(r => [r.name, r.phone, r.area || "-"])} />
       </Card>
     </div>
   )

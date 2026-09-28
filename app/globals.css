@@ -125,3 +125,20 @@ body {
 .gold-text-animate {
   animation: shimmer 3s linear infinite;
 }
+
+/* ─── iOS safe area support ──────────────────────────────── */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* ─── Smooth tap highlight removal on mobile ─────────────── */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ─── Better touch scrolling ─────────────────────────────── */
+html {
+  -webkit-overflow-scrolling: touch;
+}

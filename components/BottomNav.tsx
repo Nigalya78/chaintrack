@@ -26,7 +26,7 @@ export function BottomNav() {
 
   return (
     <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50">
-      <div className="bg-[hsl(214,32%,14%)] border-t border-[hsl(214,32%,22%)] shadow-[0_-2px_8px_0_rgb(0,0,0,0.2)]">
+      <div className="bg-[hsl(214,32%,14%)] border-t border-[hsl(214,32%,22%)] shadow-[0_-2px_8px_0_rgb(0,0,0,0.2)] safe-bottom">
         <div
           className="flex items-stretch h-[60px] overflow-x-auto scrollbar-hide px-1"
           style={{ WebkitOverflowScrolling: "touch" }}

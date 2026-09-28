@@ -15,53 +15,38 @@ export default function ForgotPasswordPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError("")
-
-    if (formData.newPassword !== formData.confirmPassword) {
-      setError("Passwords do not match.")
-      return
-    }
-    if (formData.newPassword.length < 8) {
-      setError("Password must be at least 8 characters.")
-      return
-    }
-
+    if (formData.newPassword !== formData.confirmPassword) { setError("Passwords do not match."); return }
+    if (formData.newPassword.length < 8) { setError("Password must be at least 8 characters."); return }
     setIsLoading(true)
     try {
       const res = await fetch("/api/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: formData.email, newPassword: formData.newPassword }),
       })
       const data = await res.json()
-      if (!res.ok) {
-        setError(data.error || "Something went wrong.")
-      } else {
-        setSuccess(true)
-      }
-    } catch {
-      setError("Something went wrong. Please try again.")
-    } finally {
-      setIsLoading(false)
-    }
+      if (!res.ok) setError(data.error || "Something went wrong.")
+      else setSuccess(true)
+    } catch { setError("Something went wrong.") }
+    finally { setIsLoading(false) }
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[hsl(var(--background))] p-4">
-      <div className="w-full max-w-[400px] space-y-8">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[hsl(var(--background))] px-4 py-8">
+      <div className="w-full max-w-sm space-y-6">
 
         {/* Logo */}
         <div className="flex justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="ChainTrack" width={200} height={160} className="object-contain" />
+          <img src="/logo.png" alt="ChainTrack" className="h-24 w-auto object-contain" />
         </div>
 
-        <div className="bg-white rounded-[var(--radius-xl)] border border-[hsl(38,20%,86%)] shadow-[var(--shadow-lg)] overflow-hidden">
-          <div className="px-6 pt-5 pb-4 border-b border-[hsl(38,20%,90%)] bg-[hsl(214,32%,14%)]">
+        <div className="bg-white rounded-2xl border border-border shadow-[var(--shadow-lg)] overflow-hidden">
+          <div className="px-5 pt-4 pb-3.5 bg-[hsl(214,32%,17%)]">
             <h2 className="text-[15px] font-semibold text-white">Reset Password</h2>
             <p className="text-[11px] text-[hsl(214,15%,60%)] mt-0.5">Enter your email and set a new password</p>
           </div>
 
-          <div className="px-6 py-6">
+          <div className="px-5 py-5">
             {success ? (
               <div className="text-center space-y-4">
                 <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto">
@@ -69,54 +54,28 @@ export default function ForgotPasswordPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <p className="text-sm font-medium text-foreground">Password updated successfully!</p>
-                <p className="text-sm text-[hsl(214,18%,46%)]">You can now sign in with your new password.</p>
+                <p className="text-sm font-medium">Password updated!</p>
+                <p className="text-xs text-[hsl(214,18%,46%)]">You can now sign in with your new password.</p>
                 <Link href="/login">
-                  <Button variant="gold" className="w-full mt-2">Go to Sign In</Button>
+                  <Button variant="gold" className="w-full">Go to Sign In</Button>
                 </Link>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {error && (
-                  <div className="rounded-[var(--radius)] bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
-                    {error}
-                  </div>
-                )}
-
+              <form onSubmit={handleSubmit} className="space-y-3">
+                {error && <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2.5 text-sm text-red-700">{error}</div>}
                 <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-[hsl(214,32%,17%)]">Email</label>
-                  <Input
-                    type="email" required
-                    value={formData.email}
-                    onChange={e => setFormData(p => ({ ...p, email: e.target.value }))}
-                    placeholder="your@email.com"
-                    disabled={isLoading}
-                  />
+                  <label className="block text-sm font-medium">Email</label>
+                  <Input type="email" required value={formData.email} onChange={e => setFormData(p => ({ ...p, email: e.target.value }))} placeholder="your@email.com" disabled={isLoading} />
                 </div>
-
                 <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-[hsl(214,32%,17%)]">New Password</label>
-                  <PasswordInput
-                    required
-                    value={formData.newPassword}
-                    onChange={e => setFormData(p => ({ ...p, newPassword: e.target.value }))}
-                    placeholder="Min. 8 characters"
-                    disabled={isLoading}
-                  />
+                  <label className="block text-sm font-medium">New Password</label>
+                  <PasswordInput required value={formData.newPassword} onChange={e => setFormData(p => ({ ...p, newPassword: e.target.value }))} placeholder="Min. 8 characters" disabled={isLoading} />
                 </div>
-
                 <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-[hsl(214,32%,17%)]">Confirm New Password</label>
-                  <PasswordInput
-                    required
-                    value={formData.confirmPassword}
-                    onChange={e => setFormData(p => ({ ...p, confirmPassword: e.target.value }))}
-                    placeholder="Repeat new password"
-                    disabled={isLoading}
-                  />
+                  <label className="block text-sm font-medium">Confirm Password</label>
+                  <PasswordInput required value={formData.confirmPassword} onChange={e => setFormData(p => ({ ...p, confirmPassword: e.target.value }))} placeholder="Repeat password" disabled={isLoading} />
                 </div>
-
-                <Button type="submit" variant="gold" className="w-full" disabled={isLoading}>
+                <Button type="submit" variant="gold" className="w-full !mt-4" disabled={isLoading}>
                   {isLoading ? "Updating…" : "Update Password"}
                 </Button>
               </form>
@@ -125,10 +84,8 @@ export default function ForgotPasswordPage() {
         </div>
 
         <p className="text-center text-sm text-[hsl(214,18%,46%)]">
-          Remember your password?{" "}
-          <Link href="/login" className="font-semibold text-[hsl(214,32%,17%)] hover:underline underline-offset-2">
-            Sign in
-          </Link>
+          Remember it?{" "}
+          <Link href="/login" className="font-semibold text-[hsl(214,32%,17%)] hover:underline underline-offset-2">Sign in</Link>
         </p>
       </div>
     </div>
