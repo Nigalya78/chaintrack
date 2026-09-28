@@ -55,14 +55,14 @@ export function MobileTopBar() {
 
           {/* Logo mark + "ChainTrack" text — always visible */}
           <div className="flex items-center gap-2 min-w-0">
-            {/* Small logo mark only */}
+            {/* Small logo mark */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/dark-logo.png"
+              src="/logo.png"
               alt=""
               aria-hidden
-              style={{ height: "28px", width: "auto", maxWidth: "100px" }}
-              className="object-contain shrink-0"
+              style={{ height: "30px", width: "30px", minWidth: "30px" }}
+              className="object-contain rounded"
             />
             <div className="min-w-0">
               <p className="text-[13px] font-bold text-white leading-tight tracking-tight">

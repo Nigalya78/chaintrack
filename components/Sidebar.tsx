@@ -91,13 +91,13 @@ export function Sidebar() {
         {/* ── Header ── */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-[hsl(214,32%,22%)] shrink-0">
           <Link href="/dashboard" className="flex items-center gap-2.5 min-w-0 flex-1">
-            {/* Logo mark */}
+            {/* Logo mark — use square logo.png as the icon */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/dark-logo.png"
+              src="/logo.png"
               alt="ChainTrack"
-              style={{ height: "32px", width: "32px", minWidth: "32px" }}
-              className="object-contain object-left"
+              style={{ height: "36px", width: "36px", minWidth: "36px" }}
+              className="object-contain rounded"
             />
             {/* Brand text */}
             <div className="min-w-0">
