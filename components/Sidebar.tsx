@@ -105,7 +105,7 @@ export function Sidebar() {
                 Chain<span className="text-[#C9922A]">Track</span>
               </p>
               <p className="text-[9px] text-[hsl(214,15%,48%)] leading-tight uppercase tracking-wider">
-                Jewellery Inventory & Production Management
+                Jewellery Management
               </p>
             </div>
           </Link>
