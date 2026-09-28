@@ -90,14 +90,24 @@ export function Sidebar() {
       >
         {/* ── Header ── */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-[hsl(214,32%,22%)] shrink-0">
-          <Link href="/dashboard" className="flex items-center min-w-0 flex-1">
+          <Link href="/dashboard" className="flex items-center gap-2.5 min-w-0 flex-1">
+            {/* Logo mark */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/dark-logo.png"
               alt="ChainTrack"
-              style={{ height: "34px", width: "auto", maxWidth: "180px" }}
+              style={{ height: "32px", width: "32px", minWidth: "32px" }}
               className="object-contain object-left"
             />
+            {/* Brand text */}
+            <div className="min-w-0">
+              <p className="text-[14px] font-bold text-white leading-tight tracking-tight">
+                Chain<span className="text-[#C9922A]">Track</span>
+              </p>
+              <p className="text-[9px] text-[hsl(214,15%,48%)] leading-tight uppercase tracking-wider">
+                Jewellery Mgmt
+              </p>
+            </div>
           </Link>
           {/* Close button — mobile only */}
           <button
