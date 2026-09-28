@@ -90,19 +90,19 @@ export function Sidebar() {
       >
         {/* ── Header ── */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-[hsl(214,32%,22%)] shrink-0">
-          <Link href="/dashboard" className="flex items-center gap-2.5">
+          <Link href="/dashboard" className="flex items-center min-w-0 flex-1">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/dark-logo.png"
               alt="ChainTrack"
-              style={{ height: "36px", width: "auto", maxWidth: "160px" }}
-              className="object-contain"
+              style={{ height: "34px", width: "auto", maxWidth: "180px" }}
+              className="object-contain object-left"
             />
           </Link>
           {/* Close button — mobile only */}
           <button
             onClick={() => setIsOpen(false)}
-            className="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg text-[hsl(214,15%,55%)] hover:text-white hover:bg-[hsl(214,32%,22%)] transition-colors"
+            className="lg:hidden shrink-0 w-9 h-9 flex items-center justify-center rounded-lg text-[hsl(214,15%,55%)] hover:text-white hover:bg-[hsl(214,32%,22%)] transition-colors ml-1"
             aria-label="Close menu"
           >
             <X className="h-5 w-5" />
