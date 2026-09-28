@@ -49,10 +49,14 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-[hsl(var(--background))] px-4 py-8">
       <div className="w-full max-w-sm space-y-6">
 
-        {/* Logo */}
+        {/* Logo — constrained for all screen sizes */}
         <div className="flex justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="ChainTrack" className="h-28 w-auto object-contain" />
+          <img
+            src="/logo.png"
+            alt="ChainTrack"
+            className="h-20 sm:h-28 w-auto max-w-[180px] object-contain"
+          />
         </div>
 
         {/* Card */}

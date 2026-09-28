@@ -9,11 +9,13 @@ export default function DashboardLayout({ children }: Readonly<{ children: React
       <Sidebar />
 
       <main className="flex-1 lg:ml-64 min-w-0 flex flex-col">
-        {/* Mobile sticky top bar */}
-        <MobileTopBar />
+        {/* Mobile top bar — full width, no negative margin needed */}
+        <div className="lg:hidden sticky top-0 z-50">
+          <MobileTopBar />
+        </div>
 
         {/* Page content */}
-        <div className="flex-1 p-4 sm:p-6 lg:p-8 pb-[76px] lg:pb-8">
+        <div className="flex-1 p-3 sm:p-5 lg:p-8 pb-20 lg:pb-8">
           <div className="max-w-6xl mx-auto page-enter">
             {children}
           </div>

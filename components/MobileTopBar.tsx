@@ -39,9 +39,8 @@ export function MobileTopBar() {
   }
 
   return (
-    <div className="lg:hidden sticky top-0 z-50 -mx-4 sm:-mx-6">
-      {/* Brand navy top bar */}
-      <div className="bg-[hsl(214,32%,14%)] border-b border-[hsl(214,32%,22%)] px-4 h-14 flex items-center justify-between gap-3 shadow-[var(--shadow-sm)]">
+    <div className="w-full">
+      <div className="bg-[hsl(214,32%,14%)] border-b border-[hsl(214,32%,22%)] px-3 h-14 flex items-center justify-between gap-2 shadow-sm">
 
         {/* Left: hamburger + logo + name */}
         <div className="flex items-center gap-2.5 min-w-0">
@@ -53,9 +52,14 @@ export function MobileTopBar() {
             <Menu className="h-5 w-5" />
           </button>
 
-          {/* dark-logo */}
+          {/* dark-logo — constrained for mobile */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/dark-logo.png" alt="ChainTrack" width={140} height={36} className="object-contain shrink-0" />
+          <img
+            src="/dark-logo.png"
+            alt="ChainTrack"
+            style={{ height: "32px", width: "auto", maxWidth: "130px" }}
+            className="object-contain shrink-0"
+          />
           {businessName && (
             <span className="text-[10px] text-[hsl(214,15%,50%)] truncate leading-none hidden sm:block border-l border-[hsl(214,32%,26%)] pl-2.5 ml-0.5">{businessName}</span>
           )}

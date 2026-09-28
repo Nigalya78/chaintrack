@@ -82,7 +82,12 @@ export function Sidebar() {
         <div className="flex items-center justify-center h-[70px] border-b border-[hsl(214,32%,22%)] shrink-0">
           <Link href="/dashboard">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/dark-logo.png" alt="ChainTrack" width={200} height={52} className="object-contain" />
+            <img
+              src="/dark-logo.png"
+              alt="ChainTrack"
+              style={{ height: "44px", width: "auto", maxWidth: "200px" }}
+              className="object-contain"
+            />
           </Link>
         </div>
 

@@ -81,7 +81,7 @@ export default function SetupPage() {
         {/* Logo */}
         <div className="flex justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="ChainTrack" className="h-20 w-auto object-contain" />
+          <img src="/logo.png" alt="ChainTrack" className="h-16 w-auto max-w-[140px] object-contain" />
         </div>
 
         {/* Stepper */}
